@@ -9,6 +9,7 @@ export class BootScene extends Phaser.Scene {
   preload(): void {
     for (let i = 0; i < 8; i++) {
       this.load.image(`ninja-${i}`, `sprites/ninja-${i}.png`);
+      this.load.image(`jump-${i}`, `sprites/jump-${i}.png`);
     }
   }
 

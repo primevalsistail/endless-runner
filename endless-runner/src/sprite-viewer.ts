@@ -9,6 +9,7 @@ class ViewerScene extends Phaser.Scene {
   preload(): void {
     for (let i = 0; i < 8; i++) {
       this.load.image(`ninja-${i}`, `sprites/ninja-${i}.png`);
+      this.load.image(`jump-${i}`, `sprites/jump-${i}.png`);
     }
   }
 
@@ -44,6 +45,20 @@ class ViewerScene extends Phaser.Scene {
       callback: () => { fi = (fi + 1) % 8; anim.setTexture(`ninja-${fi}`); },
     });
     y += NH + 36;
+
+    // ─── JUMP (0.5x) ─────────────────────────────────────────────────────
+    // jump sprites: 190×146 saved, display at 0.5x → 95×73
+    const JW = 190 * 0.5, JH = 146 * 0.5;
+    label('● JUMP  (0.5×)', '#ffaa44');
+    y += 20;
+    for (let i = 0; i < 8; i++) {
+      const cx = 28 + i * (JW + 14) + JW / 2;
+      this.add.image(cx, y + JH / 2, `jump-${i}`).setScale(0.5);
+      this.add.text(cx - 22, y + JH + 4, `frame ${i}`, {
+        color: '#557788', fontSize: '10px', fontFamily: 'monospace',
+      });
+    }
+    y += JH + 36;
 
     // ─── OBSTACLES (3x) ──────────────────────────────────────────────────
     const OS = 3;

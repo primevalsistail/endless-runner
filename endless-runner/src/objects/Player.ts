@@ -13,8 +13,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   private activePowerUps = new Map<PowerUpType, PowerUp>();
   private runFrame = 0;
+  private jumpFrame = 0;
   private runTimer = 0;
   private static readonly FRAME_INTERVAL = 110;
+  private static readonly JUMP_FRAME_INTERVAL = 80;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'ninja-0');
@@ -66,13 +68,26 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     this.isOnGround = body.blocked.down;
-    if (this.isOnGround) this.airJumpUsed = false;
+    if (this.isOnGround) {
+      this.airJumpUsed = false;
+      this.jumpFrame = 0;
+    }
 
-    this.runTimer += deltaMs;
-    if (this.runTimer >= Player.FRAME_INTERVAL) {
-      this.runTimer -= Player.FRAME_INTERVAL;
-      this.runFrame = (this.runFrame + 1) % 8;
-      this.setTexture(`ninja-${this.runFrame}`);
+    if (this.isOnGround) {
+      this.runTimer += deltaMs;
+      if (this.runTimer >= Player.FRAME_INTERVAL) {
+        this.runTimer -= Player.FRAME_INTERVAL;
+        this.runFrame = (this.runFrame + 1) % 8;
+        this.setTexture(`ninja-${this.runFrame}`);
+      }
+    } else {
+      this.runTimer += deltaMs;
+      if (this.runTimer >= Player.JUMP_FRAME_INTERVAL) {
+        this.runTimer -= Player.JUMP_FRAME_INTERVAL;
+        // クランプ: 最終フレームで止める（ループしない）
+        if (this.jumpFrame < 7) this.jumpFrame++;
+        this.setTexture(`jump-${this.jumpFrame}`);
+      }
     }
   }
 
