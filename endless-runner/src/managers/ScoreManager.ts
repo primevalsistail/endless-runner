@@ -20,8 +20,8 @@ export class ScoreManager {
   }
 
   saveHighScore(): void {
-    if (this._currentScore > this._highScore) {
-      this._highScore = this._currentScore;
+    if (this.currentScore > this._highScore) {
+      this._highScore = this.currentScore;
       this.persistence.saveHighScore(this._highScore);
     }
   }
