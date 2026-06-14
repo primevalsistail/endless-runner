@@ -51,31 +51,6 @@ export class MenuScene extends Phaser.Scene {
       shadow: { offsetX: 0, offsetY: 0, color: '#ff44aa', blur: 24, fill: true },
     }).setOrigin(0.5);
 
-    // ── Ninja character ──────────────────────────────────────────────────────
-    // Shadow under feet
-    this.add.ellipse(cx, GameConfig.GROUND_Y - 2, 64, 10, 0x00ffff, 0.18);
-
-    const ninja = this.add.image(cx, GameConfig.GROUND_Y - 68, 'ninja-0').setScale(2.8);
-    this.tweens.add({
-      targets: ninja,
-      y: GameConfig.GROUND_Y - 76,
-      duration: 950,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut',
-    });
-
-    // Slowly cycle run frames so the ninja looks animated on title screen
-    let frame = 0;
-    this.time.addEvent({
-      delay: 200,
-      loop: true,
-      callback: () => {
-        frame = (frame + 1) % 4;
-        ninja.setTexture(`ninja-${frame}`);
-      },
-    });
-
     // ── High score ───────────────────────────────────────────────────────────
     const scoreText = highScore > 0
       ? `BEST  ${highScore.toLocaleString()}`
