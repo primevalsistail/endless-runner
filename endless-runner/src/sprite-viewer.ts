@@ -20,10 +20,10 @@ class ViewerScene extends Phaser.Scene {
     const label = (text: string, color: string) =>
       this.add.text(12, y, text, { color, fontSize: '13px', fontFamily: 'monospace' });
 
-    // ─── NINJA (1x = natural size ~230×200) ──────────────────────────────
-    const NS = 1;
-    const NW = 230 * NS, NH = 200 * NS;
-    label('● NINJA  (1×)', '#00ffff');
+    // ─── NINJA (0.5x = half of natural size ~222×293) ────────────────────
+    const NS = 0.5;
+    const NW = 223 * NS, NH = 293 * NS;
+    label('● NINJA  (0.5×)', '#00ffff');
     y += 20;
 
     for (let i = 0; i < 4; i++) {
