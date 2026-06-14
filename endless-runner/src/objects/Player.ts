@@ -26,7 +26,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setDisplaySize(80, 70);
 
     const body = this.body as Phaser.Physics.Arcade.Body;
-    body.setSize(40, 62);
+    body.setSize(40, 66);
     body.setOffset(29, 4);
     body.setCollideWorldBounds(true);
     body.setGravityY(GameConfig.GRAVITY);
