@@ -68,10 +68,10 @@ export class PowerUpManager {
     const item = this.pool.find(p => !p.active);
     if (!item) return;
     const type: PowerUpType = Math.random() < 0.5 ? 'doubleJump' : 'invincibility';
-    const spawnY = Phaser.Math.Between(
-      GameConfig.GROUND_Y - 150,
-      GameConfig.GROUND_Y - 60
-    );
+    const lanes = type === 'doubleJump'
+      ? [GameConfig.PROJECTILE_Y_GROUND, GameConfig.PROJECTILE_Y_MID]
+      : [GameConfig.PROJECTILE_Y_GROUND, GameConfig.PROJECTILE_Y_MID, GameConfig.PROJECTILE_Y_HIGH];
+    const spawnY = lanes[Math.floor(Math.random() * lanes.length)];
     item.activate(GameConfig.WIDTH + 50, spawnY, type, gameSpeed);
   }
 

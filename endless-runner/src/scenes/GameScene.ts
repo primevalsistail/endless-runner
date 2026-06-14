@@ -55,12 +55,15 @@ export class GameScene extends Phaser.Scene {
     this.obstacleManager = new ObstacleManager(this);
     this.powerUpManager = new PowerUpManager(this);
     this.itemManager = new ItemManager(this);
-    this.hud = new GameHUD(this);
+    this.hud = new GameHUD(this, () => this.togglePause());
 
     this.input.on('pointerdown', () => {
       if (this.gameStateManager.isPlaying) this.player.jump();
     });
     this.input.on('pointerup', () => this.player.releaseJump());
+
+    this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC)
+      .on('down', () => this.togglePause());
 
     this.startCountdown();
   }
@@ -108,6 +111,12 @@ export class GameScene extends Phaser.Scene {
 
     this.updateInvincibleVisual();
     this.checkCollisions();
+  }
+
+  private togglePause(): void {
+    if (this.gameStateManager.state !== 'playing' && this.gameStateManager.state !== 'paused') return;
+    this.gameStateManager.togglePause();
+    this.hud.setPaused(this.gameStateManager.isPaused);
   }
 
   private updateInvincibleVisual(): void {
