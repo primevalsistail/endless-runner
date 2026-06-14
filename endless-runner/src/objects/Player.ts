@@ -70,7 +70,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.runTimer += deltaMs;
     if (this.runTimer >= Player.FRAME_INTERVAL) {
       this.runTimer -= Player.FRAME_INTERVAL;
-      this.runFrame = (this.runFrame + 1) % 4;
+      this.runFrame = (this.runFrame + 1) % 8;
       this.setTexture(`ninja-${this.runFrame}`);
     }
   }

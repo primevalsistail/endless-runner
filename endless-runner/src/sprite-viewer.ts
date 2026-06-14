@@ -7,10 +7,9 @@ class ViewerScene extends Phaser.Scene {
   }
 
   preload(): void {
-    this.load.image('ninja-0', 'sprites/ninja-0.png');
-    this.load.image('ninja-1', 'sprites/ninja-1.png');
-    this.load.image('ninja-2', 'sprites/ninja-2.png');
-    this.load.image('ninja-3', 'sprites/ninja-3.png');
+    for (let i = 0; i < 8; i++) {
+      this.load.image(`ninja-${i}`, `sprites/ninja-${i}.png`);
+    }
   }
 
   create(): void {
@@ -26,7 +25,7 @@ class ViewerScene extends Phaser.Scene {
     label('● NINJA  (0.5×)', '#00ffff');
     y += 20;
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 8; i++) {
       const cx = 28 + i * (NW + 14) + NW / 2;
       this.add.image(cx, y + NH / 2, `ninja-${i}`).setScale(NS);
       this.add.text(cx - 22, y + NH + 4, `frame ${i}`, {
@@ -34,7 +33,7 @@ class ViewerScene extends Phaser.Scene {
       });
     }
     // Animated run preview
-    const animCx = 28 + 4 * (NW + 14) + NW / 2;
+    const animCx = 28 + 8 * (NW + 14) + NW / 2;
     const anim = this.add.image(animCx, y + NH / 2, 'ninja-0').setScale(NS);
     this.add.text(animCx - 20, y + NH + 4, '▶ RUN', {
       color: '#00ffff', fontSize: '10px', fontFamily: 'monospace',
@@ -42,7 +41,7 @@ class ViewerScene extends Phaser.Scene {
     let fi = 0;
     this.time.addEvent({
       delay: 110, loop: true,
-      callback: () => { fi = (fi + 1) % 4; anim.setTexture(`ninja-${fi}`); },
+      callback: () => { fi = (fi + 1) % 8; anim.setTexture(`ninja-${fi}`); },
     });
     y += NH + 36;
 
