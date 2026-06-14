@@ -1,6 +1,6 @@
 import type { Player } from '../objects/Player';
 
-export type PowerUpType = 'doubleJump';
+export type PowerUpType = 'doubleJump' | 'invincibility';
 
 export abstract class PowerUp {
   abstract readonly type: PowerUpType;

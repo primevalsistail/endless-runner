@@ -9,6 +9,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   isHoldingJump = false;
   hasDoubleJump = false;
   airJumpUsed = false;
+  isInvincibleFromPowerUp = false;
 
   private activePowerUps = new Map<PowerUpType, PowerUp>();
 
@@ -79,6 +80,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.airJumpUsed = false;
     this.isHoldingJump = false;
     this.jumpHoldTime = 0;
+    this.isInvincibleFromPowerUp = false;
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setVelocity(0, 0);
     this.setPosition(GameConfig.PLAYER_X, GameConfig.GROUND_Y - 25);

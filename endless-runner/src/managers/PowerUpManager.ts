@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GameConfig } from '../config/GameConfig';
 import { PowerUpItem } from '../objects/PowerUpItem';
 import { DoubleJumpPowerUp } from '../powerups/DoubleJumpPowerUp';
+import { InvincibilityPowerUp } from '../powerups/InvincibilityPowerUp';
 import type { Player } from '../objects/Player';
 import type { PowerUpType } from '../powerups/PowerUp';
 
@@ -44,7 +45,7 @@ export class PowerUpManager {
   }
 
   collect(item: PowerUpItem, player: Player): void {
-    const powerUp = new DoubleJumpPowerUp();
+    const powerUp = item.type === 'invincibility' ? new InvincibilityPowerUp() : new DoubleJumpPowerUp();
     const existing = this.activeEffects.get(item.type);
     if (existing) {
       existing.remaining = powerUp.duration;
@@ -66,11 +67,12 @@ export class PowerUpManager {
   private spawn(gameSpeed: number): void {
     const item = this.pool.find(p => !p.active);
     if (!item) return;
+    const type: PowerUpType = Math.random() < 0.5 ? 'doubleJump' : 'invincibility';
     const spawnY = Phaser.Math.Between(
       GameConfig.GROUND_Y - 150,
       GameConfig.GROUND_Y - 60
     );
-    item.activate(GameConfig.WIDTH + 50, spawnY, 'doubleJump', gameSpeed);
+    item.activate(GameConfig.WIDTH + 50, spawnY, type, gameSpeed);
   }
 
   reset(): void {

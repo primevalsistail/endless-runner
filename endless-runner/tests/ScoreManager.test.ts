@@ -49,4 +49,22 @@ describe('ScoreManager', () => {
     expect(sm.currentScore).toBe(0);
     expect(sm.distanceTraveled).toBe(0);
   });
+
+  it('addBonus でボーナススコアが加算される', () => {
+    sm.addBonus(100);
+    expect(sm.currentScore).toBe(100);
+  });
+
+  it('addBonus は距離スコアと合算される', () => {
+    sm.update(1000, 200);
+    const distanceScore = sm.currentScore;
+    sm.addBonus(100);
+    expect(sm.currentScore).toBe(distanceScore + 100);
+  });
+
+  it('reset後はボーナスも0に戻る', () => {
+    sm.addBonus(500);
+    sm.reset();
+    expect(sm.currentScore).toBe(0);
+  });
 });

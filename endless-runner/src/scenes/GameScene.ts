@@ -6,6 +6,8 @@ import { PowerUpManager } from '../managers/PowerUpManager';
 import { ScoreManager } from '../managers/ScoreManager';
 import { DifficultyManager } from '../managers/DifficultyManager';
 import { GameStateManager } from '../managers/GameStateManager';
+import { LifeManager } from '../managers/LifeManager';
+import { ItemManager } from '../managers/ItemManager';
 import { GameHUD } from '../hud/GameHUD';
 import { InMemoryPersistenceService, type IPersistenceService } from '../services/IPersistenceService';
 import { StorageService } from '../services/StorageService';
@@ -17,6 +19,8 @@ export class GameScene extends Phaser.Scene {
   private scoreManager!: ScoreManager;
   private difficultyManager!: DifficultyManager;
   private gameStateManager!: GameStateManager;
+  private lifeManager!: LifeManager;
+  private itemManager!: ItemManager;
   private hud!: GameHUD;
 
   private countdownRemaining = GameConfig.COUNTDOWN_DURATION;
@@ -47,8 +51,10 @@ export class GameScene extends Phaser.Scene {
     this.gameStateManager = new GameStateManager(this);
     this.scoreManager = new ScoreManager(this.persistence);
     this.difficultyManager = new DifficultyManager();
+    this.lifeManager = new LifeManager();
     this.obstacleManager = new ObstacleManager(this);
     this.powerUpManager = new PowerUpManager(this);
+    this.itemManager = new ItemManager(this);
     this.hud = new GameHUD(this);
 
     this.input.on('pointerdown', () => {
@@ -87,16 +93,30 @@ export class GameScene extends Phaser.Scene {
     const interval = this.difficultyManager.obstacleInterval;
 
     this.player.update(deltaMs);
+    this.lifeManager.update(deltaMs);
     this.obstacleManager.update(deltaMs, speed, level, interval);
     this.powerUpManager.update(deltaMs, speed, this.player);
+    this.itemManager.update(deltaMs, speed);
     this.scoreManager.update(deltaMs, speed);
     this.difficultyManager.update(this.scoreManager.distanceTraveled);
 
     this.hud.updateScore(this.scoreManager.currentScore);
-    const remaining = this.powerUpManager.getRemainingTime('doubleJump');
-    this.hud.updatePowerUp(remaining > 0 ? `2x JUMP ${Math.ceil(remaining / 1000)}s` : '');
+    this.hud.updatePowerUp(
+      this.powerUpManager.getRemainingTime('doubleJump'),
+      this.powerUpManager.getRemainingTime('invincibility'),
+    );
 
+    this.updateInvincibleVisual();
     this.checkCollisions();
+  }
+
+  private updateInvincibleVisual(): void {
+    const isInvincible = this.player.isInvincibleFromPowerUp || this.lifeManager.isDamageInvincible;
+    if (isInvincible) {
+      this.player.setAlpha(Math.floor(this.time.now / 120) % 2 === 0 ? 0.3 : 1);
+    } else {
+      this.player.setAlpha(1);
+    }
   }
 
   private tickCountdown(deltaMs: number): void {
@@ -117,12 +137,36 @@ export class GameScene extends Phaser.Scene {
 
   private checkCollisions(): void {
     const playerBounds = this.player.getBounds();
+    const isInvincible = this.player.isInvincibleFromPowerUp || this.lifeManager.isDamageInvincible;
 
-    for (const obs of this.obstacleManager.getActive()) {
-      if (Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, obs.getBounds())) {
-        this.scoreManager.saveHighScore();
-        this.gameStateManager.endGame(this.scoreManager.currentScore);
-        return;
+    if (!isInvincible) {
+      for (const obs of this.obstacleManager.getActive()) {
+        if (Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, obs.getBounds())) {
+          if (this.lifeManager.takeDamage()) {
+            this.hud.updateLives(this.lifeManager.lives);
+            if (this.lifeManager.isDead()) {
+              this.scoreManager.saveHighScore();
+              this.gameStateManager.endGame(this.scoreManager.currentScore);
+              return;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    for (const item of this.itemManager.getActiveScoreItems()) {
+      if (Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, item.getBounds())) {
+        this.scoreManager.addBonus(GameConfig.SCORE_ITEM_BONUS);
+        item.deactivate();
+      }
+    }
+
+    for (const item of this.itemManager.getActiveRecoveryItems()) {
+      if (Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, item.getBounds())) {
+        this.lifeManager.recover();
+        this.hud.updateLives(this.lifeManager.lives);
+        item.deactivate();
       }
     }
 

@@ -4,6 +4,7 @@ import type { IPersistenceService } from '../services/IPersistenceService';
 export class ScoreManager {
   private _distanceTraveled = 0;
   private _currentScore = 0;
+  private _bonusScore = 0;
   private _highScore = 0;
   private persistence: IPersistenceService;
 
@@ -25,12 +26,17 @@ export class ScoreManager {
     }
   }
 
+  addBonus(amount: number): void {
+    this._bonusScore += amount;
+  }
+
   reset(): void {
     this._distanceTraveled = 0;
     this._currentScore = 0;
+    this._bonusScore = 0;
   }
 
-  get currentScore(): number { return this._currentScore; }
+  get currentScore(): number { return this._currentScore + this._bonusScore; }
   get distanceTraveled(): number { return this._distanceTraveled; }
   get highScore(): number { return this._highScore; }
 }

@@ -2,12 +2,21 @@ import Phaser from 'phaser';
 import { GameConfig } from '../config/GameConfig';
 import { StaticObstacle } from '../objects/StaticObstacle';
 import { MovingObstacle } from '../objects/MovingObstacle';
+import { ProjectileObstacle } from '../objects/ProjectileObstacle';
 import type { Obstacle } from '../objects/Obstacle';
+
+const PROJECTILE_LANES = [
+  GameConfig.PROJECTILE_Y_GROUND,
+  GameConfig.PROJECTILE_Y_MID,
+  GameConfig.PROJECTILE_Y_HIGH,
+] as const;
 
 export class ObstacleManager {
   private staticPool: StaticObstacle[] = [];
   private movingPool: MovingObstacle[] = [];
+  private projectilePool: ProjectileObstacle[] = [];
   private spawnTimer = 0;
+  private projectileTimer = 0;
   private scene: Phaser.Scene;
 
   constructor(scene: Phaser.Scene) {
@@ -21,6 +30,11 @@ export class ObstacleManager {
       m.setActive(false).setVisible(false);
       this.movingPool.push(m);
     }
+    for (let i = 0; i < GameConfig.PROJECTILE_POOL_SIZE; i++) {
+      const p = new ProjectileObstacle(scene);
+      p.setActive(false).setVisible(false);
+      this.projectilePool.push(p);
+    }
   }
 
   update(deltaMs: number, gameSpeed: number, difficultyLevel: number, obstacleInterval: number): void {
@@ -28,6 +42,14 @@ export class ObstacleManager {
     if (this.spawnTimer >= obstacleInterval) {
       this.spawnTimer = 0;
       this.spawn(gameSpeed, difficultyLevel);
+    }
+
+    if (difficultyLevel >= 2) {
+      this.projectileTimer += deltaMs;
+      if (this.projectileTimer >= GameConfig.PROJECTILE_SPAWN_INTERVAL) {
+        this.projectileTimer = 0;
+        this.spawnProjectile(gameSpeed);
+      }
     }
 
     const active = this.getActive();
@@ -65,15 +87,24 @@ export class ObstacleManager {
     }
   }
 
+  private spawnProjectile(gameSpeed: number): void {
+    const obs = this.projectilePool.find(o => !o.active);
+    if (!obs) return;
+    const laneY = PROJECTILE_LANES[Math.floor(Math.random() * PROJECTILE_LANES.length)];
+    obs.activate(GameConfig.WIDTH + 50, laneY, 25, 18, gameSpeed);
+  }
+
   getActive(): Obstacle[] {
     return [
       ...this.staticPool.filter(o => o.active),
       ...this.movingPool.filter(o => o.active),
+      ...this.projectilePool.filter(o => o.active),
     ];
   }
 
   reset(): void {
     this.spawnTimer = 0;
-    [...this.staticPool, ...this.movingPool].forEach(o => o.deactivate());
+    this.projectileTimer = 0;
+    [...this.staticPool, ...this.movingPool, ...this.projectilePool].forEach(o => o.deactivate());
   }
 }
