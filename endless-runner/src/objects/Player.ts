@@ -47,11 +47,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.jumpHoldTime = 0;
       this.isHoldingJump = true;
       this.airJumpUsed = false;
+      this.jumpFrame = 0;
+      this.runTimer = 0;
+      this.setTexture('jump-0');
     } else if (this.hasDoubleJump && !this.airJumpUsed) {
       body.setVelocityY(GameConfig.INITIAL_JUMP_FORCE);
       this.jumpHoldTime = 0;
       this.isHoldingJump = true;
       this.airJumpUsed = true;
+      // 2段ジャンプ: アニメをリセットして再スタート
+      this.jumpFrame = 0;
+      this.runTimer = 0;
+      this.setTexture('jump-0');
     }
   }
 
@@ -84,8 +91,22 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.runTimer += deltaMs;
       if (this.runTimer >= Player.JUMP_FRAME_INTERVAL) {
         this.runTimer -= Player.JUMP_FRAME_INTERVAL;
-        // クランプ: 最終フレームで止める（ループしない）
-        if (this.jumpFrame < 7) this.jumpFrame++;
+        const ascending = body.velocity.y < 0;
+        if (ascending) {
+          // 上昇中: 0→1→2→3→4 、その後 4↔5 をループ
+          if (this.jumpFrame < 4) {
+            this.jumpFrame++;
+          } else {
+            this.jumpFrame = this.jumpFrame === 4 ? 5 : 4;
+          }
+        } else {
+          // 下降中: 6→7 で止める
+          if (this.jumpFrame < 6) {
+            this.jumpFrame = 6;
+          } else if (this.jumpFrame < 7) {
+            this.jumpFrame = 7;
+          }
+        }
         this.setTexture(`jump-${this.jumpFrame}`);
       }
     }
