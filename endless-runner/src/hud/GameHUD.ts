@@ -6,6 +6,7 @@ export class GameHUD {
   private powerUpText: Phaser.GameObjects.Text;
   private livesText: Phaser.GameObjects.Text;
   private pauseButton: Phaser.GameObjects.Text;
+  private pauseBg: Phaser.GameObjects.Rectangle;
   private pauseOverlay: Phaser.GameObjects.Text;
   private countdownText: Phaser.GameObjects.Text;
 
@@ -33,7 +34,9 @@ export class GameHUD {
       fontSize: '20px', color: '#ffffff', fontFamily: 'monospace'
     }).setOrigin(1, 0).setDepth(10);
 
-    // Pause overlay (center screen)
+    // Pause overlay (dark background + text)
+    this.pauseBg = scene.add.rectangle(GameConfig.WIDTH / 2, GameConfig.HEIGHT / 2, GameConfig.WIDTH, GameConfig.HEIGHT, 0x000000, 0.7)
+      .setDepth(19).setVisible(false);
     this.pauseOverlay = scene.add.text(GameConfig.WIDTH / 2, GameConfig.HEIGHT / 2, 'PAUSED', {
       fontSize: '64px', color: '#ffffff', fontFamily: 'monospace',
       stroke: '#000000', strokeThickness: 6,
@@ -61,6 +64,7 @@ export class GameHUD {
   }
 
   setPaused(paused: boolean): void {
+    this.pauseBg.setVisible(paused);
     this.pauseOverlay.setVisible(paused);
     this.pauseButton.setText(paused ? '▶' : '⏸');
   }
