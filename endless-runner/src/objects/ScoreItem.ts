@@ -6,6 +6,7 @@ export type CoinTier = 'gold' | 'silver' | 'bronze';
 export class ScoreItem extends Phaser.GameObjects.Image {
   scrollSpeed = 0;
   tier: CoinTier = 'bronze';
+  private baseY = 0;
 
   get bonusValue(): number {
     if (this.tier === 'gold') return GameConfig.SCORE_ITEM_BONUS_GOLD;
@@ -23,7 +24,9 @@ export class ScoreItem extends Phaser.GameObjects.Image {
     this.tier = tier;
     this.setTexture(`coin-${tier}`);
     this.setPosition(x, y);
+    this.baseY = y;
     this.scrollSpeed = speed;
+    this.angle = 0;
     this.setActive(true).setVisible(true);
   }
 
@@ -33,5 +36,8 @@ export class ScoreItem extends Phaser.GameObjects.Image {
 
   update(deltaMs: number): void {
     this.x -= this.scrollSpeed * (deltaMs / 1000);
+    // Float up/down + slow spin — classic collectible feel
+    this.y = this.baseY + Math.sin(this.scene.time.now * 0.0025) * 6;
+    this.angle += deltaMs * 0.07;
   }
 }

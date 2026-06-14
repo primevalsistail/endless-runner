@@ -24,43 +24,29 @@ export class TextureFactory {
     g.destroy();
   }
 
-  // 4-frame run cycle for ninja player
-  // phase 0: right leg forward stride
-  // phase 1: legs together (transition)
-  // phase 2: left leg forward stride
-  // phase 3: legs together (transition)
   private static drawNinjaFrame(g: Phaser.GameObjects.Graphics, phase: 0 | 1 | 2 | 3): void {
     g.clear();
 
-    // Glow aura (behind everything)
     g.fillStyle(0x00aaff, 0.22);
     g.fillCircle(20, 10, 13);
     g.fillRoundedRect(5, 15, 30, 28, 7);
 
-    // Body
     g.fillStyle(0x3a5580, 1);
     g.fillRoundedRect(8, 16, 24, 26, 4);
 
-    // Head
     g.fillStyle(0x2e4468, 1);
     g.fillCircle(20, 10, 10);
 
-    // Mask
     g.fillStyle(0xffffff, 0.95);
     g.fillRect(8, 7, 24, 6);
 
-    // Eyes
     g.fillStyle(0xff2244, 1);
     g.fillCircle(14, 10, 2.5);
     g.fillCircle(26, 10, 2.5);
 
-    // Scarf
     g.fillStyle(0x00ffff, 1);
     g.fillRect(11, 22, 18, 4);
 
-    // Arms swing opposite to forward leg
-    // phase 0 (right leg fwd): left arm fwd (high y=17), right arm back (low y=23)
-    // phase 2 (left leg fwd): left arm back, right arm fwd
     const leftArmY  = phase === 0 ? 17 : phase === 2 ? 23 : 20;
     const rightArmY = phase === 0 ? 23 : phase === 2 ? 17 : 20;
     g.fillStyle(0x3a5580, 1);
@@ -70,30 +56,25 @@ export class TextureFactory {
     g.fillRect(2, leftArmY + 2, 6, 2);
     g.fillRect(32, rightArmY + 2, 6, 2);
 
-    // Legs
     g.fillStyle(0x2a3f5c, 1);
     if (phase === 0) {
-      // Right leg forward (lower/extended), left leg back (raised/shorter)
       g.fillRect(22, 42, 9, 8);
       g.fillRect(9,  42, 9, 6);
     } else if (phase === 2) {
-      // Left leg forward, right leg back
       g.fillRect(9,  42, 9, 8);
       g.fillRect(22, 42, 9, 6);
     } else {
-      // Transition: both legs even
       g.fillRect(10, 42, 9, 8);
       g.fillRect(21, 42, 9, 8);
     }
 
-    // Boots
     g.fillStyle(0x1a2a3a, 1);
     if (phase === 0) {
-      g.fillRect(20, 49, 12, 3);  // right boot lower (forward)
-      g.fillRect(8,  47, 11, 3);  // left boot higher (back)
+      g.fillRect(20, 49, 12, 3);
+      g.fillRect(8,  47, 11, 3);
     } else if (phase === 2) {
-      g.fillRect(8,  49, 12, 3);  // left boot lower (forward)
-      g.fillRect(20, 47, 11, 3);  // right boot higher (back)
+      g.fillRect(8,  49, 12, 3);
+      g.fillRect(20, 47, 11, 3);
     } else {
       g.fillRect(9,  49, 11, 3);
       g.fillRect(20, 49, 11, 3);
@@ -104,21 +85,32 @@ export class TextureFactory {
 
   private static createBarricade(g: Phaser.GameObjects.Graphics): void {
     g.clear();
+    // Red danger aura — clearly "avoid this"
+    g.fillStyle(0xff2200, 0.30);
+    g.fillRoundedRect(-5, -5, 50, 70, 7);
+
     g.fillStyle(0x2a2a4a, 1);
     g.fillRoundedRect(0, 0, 40, 60, 3);
     g.fillStyle(0xff6600, 1);
     g.fillRect(0, 10, 40, 8);
     g.fillRect(0, 26, 40, 8);
     g.fillRect(0, 42, 40, 8);
-    g.lineStyle(1, 0x444466, 1);
+    g.lineStyle(2, 0xff4400, 1);
     g.strokeRoundedRect(0, 0, 40, 60, 3);
+    // Pulsing red warning light
     g.fillStyle(0xff0044, 1);
-    g.fillCircle(20, 4, 3);
-    g.generateTexture('barricade', 40, 60);
+    g.fillCircle(20, 4, 4);
+    g.fillStyle(0xff6688, 0.6);
+    g.fillCircle(20, 4, 7);
+    g.generateTexture('barricade', 50, 70);
   }
 
   private static createDrone(g: Phaser.GameObjects.Graphics): void {
     g.clear();
+    // Red danger aura
+    g.fillStyle(0xff0000, 0.22);
+    g.fillEllipse(25, 13, 58, 34);
+
     g.fillStyle(0x444466, 1);
     g.fillRect(0, 10, 50, 4);
     g.fillStyle(0x333355, 1);
@@ -126,11 +118,16 @@ export class TextureFactory {
     g.fillStyle(0x888899, 0.7);
     g.fillEllipse(6, 12, 14, 6);
     g.fillEllipse(44, 12, 14, 6);
-    g.fillStyle(0x00ff44, 1);
-    g.fillCircle(25, 13, 4);
-    g.fillStyle(0x00aa33, 1);
-    g.fillCircle(25, 13, 2);
-    g.lineStyle(1, 0x6666aa, 0.5);
+    // Red menacing eye (was green — green reads as "friendly")
+    g.fillStyle(0xff2200, 1);
+    g.fillCircle(25, 13, 5);
+    g.fillStyle(0xff6600, 1);
+    g.fillCircle(25, 13, 2.5);
+    // Red LED warning lights on arms
+    g.fillStyle(0xff2200, 0.9);
+    g.fillCircle(4, 12, 2);
+    g.fillCircle(46, 12, 2);
+    g.lineStyle(1, 0xff4444, 0.4);
     g.strokeRect(14, 6, 22, 14);
     g.generateTexture('drone', 50, 26);
   }
@@ -149,8 +146,11 @@ export class TextureFactory {
       { x: 0, y: cy },
       { x: cx - 5, y: cy - 5 },
     ], true);
-    g.fillStyle(0x00f5ff, 0.5);
+    // Red-orange center (weapon, not collectible)
+    g.fillStyle(0xff4400, 0.85);
     g.fillCircle(cx, cy, 4);
+    g.fillStyle(0xff8800, 0.6);
+    g.fillCircle(cx, cy, 2);
     g.generateTexture('shuriken', 28, 28);
   }
 
@@ -164,6 +164,11 @@ export class TextureFactory {
     g.clear();
     const r = size / 2;
     const cx = r, cy = r;
+
+    // Golden pickup glow — clearly "collect me"
+    g.fillStyle(0xffff88, 0.35);
+    g.fillCircle(cx, cy, r + 4);
+
     g.fillStyle(outerColor, 1);
     g.fillCircle(cx, cy, r - 1);
     g.fillStyle(innerColor, 1);
@@ -174,28 +179,42 @@ export class TextureFactory {
     g.fillRect(cx + 3, cy - (r - 7), 2, (r - 7) * 2);
     g.lineStyle(1, 0xffffff, 0.35);
     g.strokeCircle(cx, cy, r - 1);
-    g.generateTexture(key, size, size);
+    // Sparkle glint (top-right corner)
+    g.fillStyle(0xffffff, 0.95);
+    g.fillCircle(cx + r * 0.42, cy - r * 0.42, 2);
+    g.generateTexture(key, size + 8, size + 8);
   }
 
   private static createBandaid(g: Phaser.GameObjects.Graphics): void {
     g.clear();
+    // Green pickup glow — "health item"
+    g.fillStyle(0x44ff88, 0.30);
+    g.fillRoundedRect(-4, -4, 44, 24, 5);
+
     g.fillStyle(0xf5deb3, 1);
     g.fillRect(0, 3, 36, 10);
     g.fillStyle(0xffb6c1, 1);
     g.fillRect(0, 0, 10, 16);
     g.fillRect(26, 0, 10, 16);
+    // White gauze center
     g.fillStyle(0xffffff, 0.9);
     g.fillRect(11, 4, 14, 8);
-    g.fillStyle(0xffccdd, 0.8);
-    g.fillCircle(15, 8, 1.5);
-    g.fillCircle(19, 6, 1.5);
-    g.fillCircle(23, 8, 1.5);
-    g.fillCircle(19, 10, 1.5);
+    // Green cross — universally "healing"
+    g.fillStyle(0x22cc44, 1);
+    g.fillRect(16, 5, 4, 6);
+    g.fillRect(13, 7, 10, 2);
     g.generateTexture('bandaid', 36, 16);
   }
 
   private static createShield(g: Phaser.GameObjects.Graphics): void {
     g.clear();
+    // Golden pickup glow
+    g.fillStyle(0xffd700, 0.30);
+    g.fillPoints([
+      { x: -2, y: 0 }, { x: 34, y: 0 },
+      { x: 34, y: 24 }, { x: 16, y: 38 }, { x: -2, y: 24 },
+    ], true);
+
     const pts = [
       { x: 2, y: 2 }, { x: 30, y: 2 },
       { x: 30, y: 22 }, { x: 16, y: 34 }, { x: 2, y: 22 },
@@ -212,6 +231,10 @@ export class TextureFactory {
 
   private static createBoot(g: Phaser.GameObjects.Graphics): void {
     g.clear();
+    // Golden pickup glow
+    g.fillStyle(0xffd700, 0.25);
+    g.fillRoundedRect(-3, -3, 38, 40, 6);
+
     g.fillStyle(0xffffff, 1);
     g.fillRoundedRect(4, 2, 22, 14, 4);
     g.fillRoundedRect(22, 8, 10, 10, 3);
@@ -230,10 +253,8 @@ export class TextureFactory {
 
   private static createBgSky(g: Phaser.GameObjects.Graphics): void {
     g.clear();
-    // Dark space at top, purple city-glow at bottom
     g.fillGradientStyle(0x0a0520, 0x0a0520, 0x2d0d58, 0x2d0d58, 1);
     g.fillRect(0, 0, 800, 450);
-    // Stars
     const stars: [number, number, number][] = [
       [50, 30, 1.5], [120, 80, 1], [200, 20, 2], [300, 60, 1.5], [400, 40, 1],
       [500, 90, 1], [600, 25, 2], [700, 70, 1.5], [150, 120, 1], [350, 100, 1.5],
@@ -252,7 +273,6 @@ export class TextureFactory {
 
   private static createBgFar(g: Phaser.GameObjects.Graphics): void {
     g.clear();
-    // Visible silhouettes against the sky (lighter than before)
     g.fillStyle(0x1a1244, 1);
     const buildings: [number, number, number, number][] = [
       [0, 80, 50, 220], [55, 40, 40, 260], [100, 100, 55, 200],
@@ -262,7 +282,6 @@ export class TextureFactory {
     for (const [bx, by, bw, bh] of buildings) {
       g.fillRect(bx, by, bw, bh);
     }
-    // Cyan neon windows
     g.fillStyle(0x00f5ff, 0.6);
     const cyanWins: [number, number, number, number][] = [
       [5, 120, 6, 3], [5, 132, 6, 3], [20, 112, 6, 3],
@@ -277,7 +296,6 @@ export class TextureFactory {
     for (const [wx, wy, ww, wh] of cyanWins) {
       g.fillRect(wx, wy, ww, wh);
     }
-    // Pink/red accent windows
     g.fillStyle(0xff2266, 0.55);
     const redWins: [number, number, number, number][] = [
       [12, 104, 8, 3], [170, 72, 8, 3], [215, 46, 8, 3], [360, 100, 8, 3],
@@ -290,7 +308,6 @@ export class TextureFactory {
 
   private static createBgMid(g: Phaser.GameObjects.Graphics): void {
     g.clear();
-    // Darker closer buildings (atmospheric depth)
     g.fillStyle(0x0e0c28, 1);
     const buildings: [number, number, number, number][] = [
       [0, 50, 40, 250], [45, 70, 30, 230], [80, 30, 50, 270],
@@ -300,7 +317,6 @@ export class TextureFactory {
     for (const [bx, by, bw, bh] of buildings) {
       g.fillRect(bx, by, bw, bh);
     }
-    // Bright cyan windows (close = vivid)
     g.fillStyle(0x00f5ff, 0.8);
     const cyanWins: [number, number, number, number][] = [
       [4, 90, 8, 4], [4, 106, 8, 4], [20, 96, 8, 4],
@@ -314,7 +330,6 @@ export class TextureFactory {
     for (const [wx, wy, ww, wh] of cyanWins) {
       g.fillRect(wx, wy, ww, wh);
     }
-    // Pink neon signs
     g.fillStyle(0xff44aa, 0.8);
     const signs: [number, number, number, number][] = [
       [6, 76, 24, 5], [88, 56, 28, 5], [183, 46, 26, 5], [268, 66, 22, 5],
