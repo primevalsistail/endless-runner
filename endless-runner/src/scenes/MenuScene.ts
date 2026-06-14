@@ -18,8 +18,9 @@ export class MenuScene extends Phaser.Scene {
 
     // ── Background ──────────────────────────────────────────────────────────
     this.add.image(cx, height / 2, 'bg-sky');
-    this.farLayer = this.add.tileSprite(cx, 300, width, 300, 'bg-far').setDepth(-2);
-    this.midLayer = this.add.tileSprite(cx, 335, width, 230, 'bg-mid').setDepth(-1);
+    this.farLayer = this.add.tileSprite(cx, 210, width, 300, 'bg-far').setDepth(-2);
+    this.midLayer = this.add.tileSprite(cx, 250, width, 230, 'bg-mid').setDepth(-1);
+    this.add.rectangle(cx, 415, width, 110, 0x06030e);
 
     // Semi-transparent overlay to push background into "background"
     this.add.rectangle(cx, height / 2, width, height, 0x000000, 0.42);
