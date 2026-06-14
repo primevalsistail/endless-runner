@@ -55,7 +55,11 @@ export class GameScene extends Phaser.Scene {
     this.obstacleManager = new ObstacleManager(this);
     this.powerUpManager = new PowerUpManager(this);
     this.itemManager = new ItemManager(this);
-    this.hud = new GameHUD(this, () => this.togglePause());
+    this.hud = new GameHUD(this, {
+      onPause: () => this.togglePause(),
+      onRetry: () => this.scene.restart(),
+      onTitle: () => this.scene.start('MenuScene'),
+    });
 
     this.input.on('pointerdown', () => {
       if (this.gameStateManager.isPlaying) this.player.jump();
