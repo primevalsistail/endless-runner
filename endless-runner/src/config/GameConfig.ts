@@ -30,6 +30,12 @@ export const GameConfig = {
   PROJECTILE_Y_HIGH: 120,
   PROJECTILE_SPAWN_INTERVAL: 4000,
 
+  DEFAULT_BGM_VOLUME: 0.6,
+  DEFAULT_SFX_VOLUME: 0.8,
+  PAUSE_BGM_VOLUME: 0.15,
+  BGM_VOLUME_KEY: 'endless_runner_bgm_volume',
+  SFX_VOLUME_KEY: 'endless_runner_sfx_volume',
+
   ITEM_POOL_SIZE: 5,
   SCORE_ITEM_BONUS_GOLD: 500,
   SCORE_ITEM_BONUS_SILVER: 200,

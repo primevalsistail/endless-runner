@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { GameConfig } from '../config/GameConfig';
 import { StorageService } from '../services/StorageService';
+import { AudioManager } from '../services/AudioManager';
 
 interface GameOverData {
   score: number;
@@ -25,6 +26,10 @@ export class GameOverScene extends Phaser.Scene {
     const storage = new StorageService();
     const highScore = storage.loadHighScore();
     const isNewRecord = this.score > 0 && this.score >= highScore;
+
+    const audio = AudioManager.getInstance();
+    audio.stopBGM();
+    this.time.delayedCall(100, () => audio.playSFX('gameover'));
 
     // ── Background ──────────────────────────────────────────────────────────
     this.add.image(cx, height / 2, 'bg-sky');

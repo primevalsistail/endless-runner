@@ -12,6 +12,7 @@ import { BackgroundManager } from '../managers/BackgroundManager';
 import { GameHUD } from '../hud/GameHUD';
 import { InMemoryPersistenceService, type IPersistenceService } from '../services/IPersistenceService';
 import { StorageService } from '../services/StorageService';
+import { AudioManager } from '../services/AudioManager';
 
 export class GameScene extends Phaser.Scene {
   private player!: Player;
@@ -71,8 +72,14 @@ export class GameScene extends Phaser.Scene {
       onTitle: () => this.scene.start('MenuScene'),
     });
 
+    AudioManager.getInstance().playBGM('game-bgm');
+
+    const audio = AudioManager.getInstance();
     this.input.on('pointerdown', () => {
-      if (this.gameStateManager.isPlaying) this.player.jump();
+      if (!this.gameStateManager.isPlaying) return;
+      const result = this.player.jump();
+      if (result === 'ground') audio.playSFX('jump');
+      else if (result === 'double') audio.playSFX('double-jump');
     });
     this.input.on('pointerup', () => this.player.releaseJump());
 
@@ -132,6 +139,11 @@ export class GameScene extends Phaser.Scene {
     if (this.gameStateManager.state !== 'playing' && this.gameStateManager.state !== 'paused') return;
     this.gameStateManager.togglePause();
     this.hud.setPaused(this.gameStateManager.isPaused);
+    if (this.gameStateManager.isPaused) {
+      AudioManager.getInstance().onPause();
+    } else {
+      AudioManager.getInstance().onResume();
+    }
   }
 
   private updateInvincibleVisual(): void {
@@ -162,11 +174,13 @@ export class GameScene extends Phaser.Scene {
   private checkCollisions(): void {
     const playerBounds = this.player.getBounds();
     const isInvincible = this.player.isInvincibleFromPowerUp || this.lifeManager.isDamageInvincible;
+    const audio = AudioManager.getInstance();
 
     if (!isInvincible) {
       for (const obs of this.obstacleManager.getActive()) {
         if (Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, obs.getBounds())) {
           if (this.lifeManager.takeDamage()) {
+            audio.playSFX('hit');
             this.hud.updateLives(this.lifeManager.lives);
             if (this.lifeManager.isDead()) {
               this.scoreManager.saveHighScore();
@@ -181,6 +195,7 @@ export class GameScene extends Phaser.Scene {
 
     for (const item of this.itemManager.getActiveScoreItems()) {
       if (Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, item.getBounds())) {
+        audio.playSFX('coin');
         this.scoreManager.addBonus(item.bonusValue);
         item.deactivate();
       }
@@ -188,6 +203,7 @@ export class GameScene extends Phaser.Scene {
 
     for (const item of this.itemManager.getActiveRecoveryItems()) {
       if (Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, item.getBounds())) {
+        audio.playSFX('heal');
         this.lifeManager.recover();
         this.hud.updateLives(this.lifeManager.lives);
         item.deactivate();
@@ -196,6 +212,7 @@ export class GameScene extends Phaser.Scene {
 
     for (const item of this.powerUpManager.getActiveItems()) {
       if (Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, item.getBounds())) {
+        audio.playSFX('powerup');
         this.powerUpManager.collect(item, this.player);
       }
     }

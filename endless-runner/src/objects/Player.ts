@@ -40,7 +40,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     body.setGravityY(GameConfig.GRAVITY);
   }
 
-  jump(): void {
+  jump(): 'ground' | 'double' | null {
     const body = this.body as Phaser.Physics.Arcade.Body;
 
     if (this.isOnGround) {
@@ -51,16 +51,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.jumpFrame = 0;
       this.runTimer = 0;
       this.setTexture('jump-0');
+      return 'ground';
     } else if (this.hasDoubleJump && !this.airJumpUsed) {
       body.setVelocityY(GameConfig.INITIAL_JUMP_FORCE);
       this.jumpHoldTime = 0;
       this.isHoldingJump = true;
       this.airJumpUsed = true;
-      // 2段ジャンプ: アニメをリセットして再スタート
       this.jumpFrame = 0;
       this.runTimer = 0;
       this.setTexture('jump-0');
+      return 'double';
     }
+    return null;
   }
 
   releaseJump(): void {

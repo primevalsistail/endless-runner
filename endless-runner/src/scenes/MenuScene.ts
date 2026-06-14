@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { GameConfig } from '../config/GameConfig';
 import { StorageService } from '../services/StorageService';
+import { AudioManager } from '../services/AudioManager';
 
 export class MenuScene extends Phaser.Scene {
   private farLayer!: Phaser.GameObjects.TileSprite;
@@ -105,6 +106,64 @@ export class MenuScene extends Phaser.Scene {
     };
     startBtn.on('pointerdown', goToGame);
     this.input.on('pointerdown', goToGame);
+
+    AudioManager.getInstance().playBGM('menu-bgm');
+    this.createVolumeControls(cx, 420);
+  }
+
+  private createVolumeControls(cx: number, baseY: number): void {
+    const audio = AudioManager.getInstance();
+    const trackW = 160;
+    const labelStyle = { fontSize: '11px', color: '#88aacc', fontFamily: 'monospace' };
+    const pctStyle   = { fontSize: '11px', color: '#aaccdd', fontFamily: 'monospace' };
+
+    this.add.text(cx, baseY - 14, 'AUDIO', {
+      fontSize: '11px', color: '#445566', fontFamily: 'monospace', letterSpacing: 4,
+    }).setOrigin(0.5);
+
+    this.makeSlider(cx, baseY + 8,  trackW, 'BGM', audio.getBgmVolume(), labelStyle, pctStyle,
+      (v) => audio.setBgmVolume(v));
+    this.makeSlider(cx, baseY + 34, trackW, 'SFX', audio.getSfxVolume(), labelStyle, pctStyle,
+      (v) => audio.setSfxVolume(v));
+  }
+
+  private makeSlider(
+    cx: number, y: number, trackW: number,
+    label: string, initial: number,
+    labelStyle: object, pctStyle: object,
+    onChange: (v: number) => void,
+  ): void {
+    const left = cx - trackW / 2;
+
+    this.add.text(left - 6, y, label, labelStyle).setOrigin(1, 0.5);
+
+    // Track
+    this.add.rectangle(cx, y, trackW, 3, 0x223344);
+
+    // Fill
+    const fill = this.add.rectangle(
+      left + (initial * trackW) / 2, y,
+      initial * trackW, 3, 0x00ccff,
+    );
+
+    // Handle
+    const handle = this.add.circle(left + initial * trackW, y, 7, 0x00ffff)
+      .setInteractive({ useHandCursor: true });
+    this.input.setDraggable(handle);
+
+    // Percentage label
+    const pct = this.add.text(left + trackW + 8, y, `${Math.round(initial * 100)}%`, pctStyle)
+      .setOrigin(0, 0.5);
+
+    handle.on('drag', (_ptr: Phaser.Input.Pointer, dragX: number) => {
+      const clampedX = Phaser.Math.Clamp(dragX, left, left + trackW);
+      handle.x = clampedX;
+      const v = (clampedX - left) / trackW;
+      fill.setSize(v * trackW || 1, 3);
+      fill.x = left + (v * trackW) / 2;
+      pct.setText(`${Math.round(v * 100)}%`);
+      onChange(v);
+    });
   }
 
   update(_time: number, delta: number): void {
