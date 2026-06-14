@@ -4,10 +4,7 @@ export class TextureFactory {
   static createAll(scene: Phaser.Scene): void {
     const g = scene.add.graphics();
 
-    this.drawNinjaFrame(g, 0);
-    this.drawNinjaFrame(g, 1);
-    this.drawNinjaFrame(g, 2);
-    this.drawNinjaFrame(g, 3);
+    // ninja-0..3 are loaded from public/sprites/ in BootScene.preload()
     this.createBarricade(g);
     this.createDrone(g);
     this.createShuriken(g);
@@ -24,90 +21,96 @@ export class TextureFactory {
     g.destroy();
   }
 
-  // ─── NINJA (4-frame run, SD/chibi style, right-facing) ──────────────────
+  // ─── NINJA (4-frame run, SD/chibi, red scarf, right-facing) ─────────────
 
   private static drawNinjaFrame(g: Phaser.GameObjects.Graphics, phase: 0 | 1 | 2 | 3): void {
     g.clear();
 
-    // Glow aura
-    g.fillStyle(0x00aaff, 0.20);
-    g.fillCircle(21, 13, 16);
-    g.fillRoundedRect(10, 26, 22, 14, 6);
+    // Subtle white separation glow (keeps character visible on dark bg)
+    g.fillStyle(0xffffff, 0.07);
+    g.fillCircle(21, 14, 18);
 
-    // ── SCARF (8-point ribbon, larger amplitude wave per frame) ──────────────
-    // Drawn first so body paints over the attachment point naturally
-    g.fillStyle(0x00ffff, 1);
+    // ── SCARF (RED, sweeps UP-LEFT from neck, peeks out behind head) ─────────
+    // Drawn first — head/body paint over attachment; tip stays visible upper-left
     let sp: { x: number; y: number }[];
     if (phase === 0) {
-      // Tip sweeps UP (left arm is forward = left arm high = scarf up)
-      sp = [{ x: 24, y: 26 }, { x: 17, y: 23 }, { x: 9, y: 20 }, { x: 2, y: 18 },
-            { x: 2, y: 22  }, { x: 9, y: 25  }, { x: 17, y: 28 }, { x: 24, y: 32 }];
+      // Tip maximum UP
+      sp = [{x:26,y:24},{x:11,y:8},{x:1,y:5},{x:3,y:12},{x:14,y:18},{x:26,y:32}];
+    } else if (phase === 1) {
+      sp = [{x:26,y:24},{x:11,y:12},{x:2,y:10},{x:4,y:18},{x:14,y:21},{x:26,y:32}];
     } else if (phase === 2) {
-      // Tip sweeps DOWN
-      sp = [{ x: 24, y: 26 }, { x: 17, y: 29 }, { x: 9, y: 32 }, { x: 2, y: 34 },
-            { x: 2, y: 38  }, { x: 9, y: 36  }, { x: 17, y: 32 }, { x: 24, y: 32 }];
+      // Tip most to the side (lower)
+      sp = [{x:26,y:24},{x:11,y:16},{x:1,y:15},{x:3,y:22},{x:13,y:22},{x:26,y:32}];
     } else {
-      // Neutral — horizontal ribbon
-      sp = [{ x: 24, y: 26 }, { x: 17, y: 26 }, { x: 9, y: 26 }, { x: 2, y: 26 },
-            { x: 2, y: 30  }, { x: 9, y: 30  }, { x: 17, y: 31 }, { x: 24, y: 32 }];
+      // Same as phase 1 — smooth UP→MID→DOWN→MID cycle
+      sp = [{x:26,y:24},{x:11,y:12},{x:2,y:10},{x:4,y:18},{x:14,y:21},{x:26,y:32}];
     }
+    // Shadow (1px offset — simple pixel art depth)
+    g.fillStyle(0x991500, 1);
+    g.fillPoints(sp.map(p => ({ x: p.x + 1, y: p.y + 1 })), true);
+    // Main scarf
+    g.fillStyle(0xdd2200, 1);
     g.fillPoints(sp, true);
+    // Inner fold (darker centre strip = fabric volume)
+    g.fillStyle(0x882200, 0.45);
+    g.fillPoints([sp[1], sp[2], sp[3], sp[4]], true);
 
-    // ── BODY (small SD, body covers scarf attachment) ─────────────────────────
-    g.fillStyle(0x3a5580, 1);
+    // ── BODY ──────────────────────────────────────────────────────────────────
+    g.fillStyle(0x1e2d4a, 1);
     g.fillRoundedRect(13, 26, 17, 13, 4);
 
-    // ── HEAD (large, shifted slightly forward of body = forward lean feel) ────
-    g.fillStyle(0x2e4468, 1);
+    // ── HEAD ──────────────────────────────────────────────────────────────────
+    g.fillStyle(0x1e2d4a, 1);
     g.fillCircle(21, 13, 13);
 
-    // Hitai-ate headband
-    g.fillStyle(0x1a1a2e, 1);
-    g.fillRect(9, 7, 24, 5);
-    g.fillStyle(0x4455aa, 1);
-    g.fillRect(15, 7, 12, 5);
-    g.fillStyle(0x2233aa, 0.6);
-    g.fillRect(17, 9, 8, 2);
+    // Headband + hitai-ate plate
+    g.fillStyle(0x182440, 1);
+    g.fillRect(9, 5, 24, 5);
+    g.fillStyle(0x3d5a8a, 1);
+    g.fillRect(15, 5, 12, 5);
 
-    // Mask (right side — side profile)
-    g.fillStyle(0xffffff, 0.92);
-    g.fillRect(16, 11, 15, 9);
+    // ── FACE ──────────────────────────────────────────────────────────────────
+    // Skin — below headband, above mask (clearly visible peach strip)
+    g.fillStyle(0xffb899, 1);
+    g.fillRect(19, 9, 12, 6);
+    // Mask (lower face — dark cloth)
+    g.fillStyle(0x0f1525, 1);
+    g.fillRect(16, 14, 15, 9);
+    // Eye — red-orange slit at mask top edge
+    g.fillStyle(0xff5522, 1);
+    g.fillRect(22, 14, 8, 4);
+    g.fillStyle(0xffaa66, 0.7);
+    g.fillRect(23, 15, 6, 2);
 
-    // Eye — smaller black manga dot (was radius 5 → 3)
-    g.fillStyle(0x1a1a2e, 1);
-    g.fillCircle(27, 13, 3);
-    g.fillStyle(0xffffff, 0.95);
-    g.fillCircle(25, 12, 1.2);
-
-    // ── ARMS (wider swing range for dynamic running pump) ──────────────────────
-    // phase 0: left arm swings far back-high, right arm forward-low
+    // ── ARMS ──────────────────────────────────────────────────────────────────
     const leftArmY  = phase === 0 ? 24 : phase === 2 ? 31 : 27;
     const rightArmY = phase === 0 ? 31 : phase === 2 ? 24 : 27;
-    g.fillStyle(0x3a5580, 1);
+    g.fillStyle(0x1e2d4a, 1);
     g.fillRoundedRect(5,  leftArmY,  7, 12, 3);
     g.fillRoundedRect(29, rightArmY, 7, 12, 3);
-    g.fillStyle(0x00ffff, 0.55);
-    g.fillRect(6,  leftArmY  + 2, 5, 2);
-    g.fillRect(30, rightArmY + 2, 5, 2);
+    // Fists (slightly lighter knuckle)
+    g.fillStyle(0x2e3d5a, 1);
+    g.fillCircle(8,  leftArmY  + 11, 4);
+    g.fillCircle(32, rightArmY + 11, 4);
 
-    // ── LEGS (wide stride: forward leg extends right, back leg kicks up-left) ──
-    g.fillStyle(0x2a3f5c, 1);
+    // ── LEGS ──────────────────────────────────────────────────────────────────
+    g.fillStyle(0x18253e, 1);
     if (phase === 0) {
-      g.fillRoundedRect(23, 38, 8, 11, 3);  // right leg — forward, far right
-      g.fillRoundedRect(9,  36, 8,  9, 3);  // left leg  — kicking up-left (higher y-start)
+      g.fillRoundedRect(23, 38, 8, 11, 3);  // forward leg (right)
+      g.fillRoundedRect(9,  36, 8,  9, 3);  // back leg kicks up-left
     } else if (phase === 2) {
-      g.fillRoundedRect(10, 38, 8, 11, 3);  // left leg  — forward
-      g.fillRoundedRect(24, 36, 8,  9, 3);  // right leg — kicking back
+      g.fillRoundedRect(10, 38, 8, 11, 3);
+      g.fillRoundedRect(24, 36, 8,  9, 3);
     } else {
       g.fillRoundedRect(12, 38, 8, 9, 3);
       g.fillRoundedRect(22, 38, 8, 9, 3);
     }
 
     // ── BOOTS ─────────────────────────────────────────────────────────────────
-    g.fillStyle(0x1a2a3a, 1);
+    g.fillStyle(0x0c1420, 1);
     if (phase === 0) {
-      g.fillRoundedRect(21, 48, 11, 4, 2);  // forward boot (lower)
-      g.fillRoundedRect(8,  44,  9, 4, 2);  // back boot (higher — kick-up)
+      g.fillRoundedRect(21, 48, 11, 4, 2);
+      g.fillRoundedRect(8,  44,  9, 4, 2);
     } else if (phase === 2) {
       g.fillRoundedRect(9,  48, 11, 4, 2);
       g.fillRoundedRect(22, 44,  9, 4, 2);

@@ -21,9 +21,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    this.setDisplaySize(40, 50);
+    // Sprite images are ~230×200px; display at 56×50 maintains aspect ratio.
+    // Physics body covers only the character body (not the scarf that trails left).
+    this.setDisplaySize(56, 50);
 
     const body = this.body as Phaser.Physics.Arcade.Body;
+    body.setSize(28, 44);
+    body.setOffset(20, 3);
     body.setCollideWorldBounds(true);
     body.setGravityY(GameConfig.GRAVITY);
   }
