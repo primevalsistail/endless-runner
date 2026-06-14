@@ -17,6 +17,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private runTimer = 0;
   private static readonly FRAME_INTERVAL = 110;
   private static readonly JUMP_FRAME_INTERVAL = 80;
+  private static readonly FALL_THRESHOLD = 200;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'ninja-0');
@@ -91,20 +92,20 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.runTimer += deltaMs;
       if (this.runTimer >= Player.JUMP_FRAME_INTERVAL) {
         this.runTimer -= Player.JUMP_FRAME_INTERVAL;
-        const ascending = body.velocity.y < 0;
-        if (ascending) {
-          // 上昇中: 0→1→2→3→4 、その後 4↔5 をループ
-          if (this.jumpFrame < 4) {
-            this.jumpFrame++;
-          } else {
-            this.jumpFrame = this.jumpFrame === 4 ? 5 : 4;
-          }
-        } else {
-          // 下降中: 6→7 で止める
+        const vy = body.velocity.y;
+        if (vy > Player.FALL_THRESHOLD) {
+          // 高速落下: F7→F8（index 6-7）で止める
           if (this.jumpFrame < 6) {
             this.jumpFrame = 6;
-          } else if (this.jumpFrame < 7) {
+          } else if (this.jumpFrame === 6) {
             this.jumpFrame = 7;
+          }
+        } else {
+          // 通常空中: F1→F2（0→1）後、F3-F6（2-5）をループ
+          if (this.jumpFrame < 2) {
+            this.jumpFrame++;
+          } else {
+            this.jumpFrame = this.jumpFrame >= 5 ? 2 : this.jumpFrame + 1;
           }
         }
         this.setTexture(`jump-${this.jumpFrame}`);

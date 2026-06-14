@@ -47,8 +47,8 @@ class ViewerScene extends Phaser.Scene {
     y += NH + 36;
 
     // ─── JUMP (0.5x) ─────────────────────────────────────────────────────
-    // jump sprites: 190×146 saved, display at 0.5x → 95×73
-    const JW = 190 * 0.5, JH = 146 * 0.5;
+    // jump sprites: 148×146 saved, display at 0.5x → 74×73
+    const JW = 148 * 0.5, JH = 146 * 0.5;
     label('● JUMP  (0.5×)', '#ffaa44');
     y += 20;
     for (let i = 0; i < 8; i++) {
