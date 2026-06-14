@@ -5,8 +5,6 @@ import { RecoveryItem } from '../objects/RecoveryItem';
 
 const ITEM_LANES = [
   GameConfig.PROJECTILE_Y_GROUND,
-  GameConfig.PROJECTILE_Y_MID,
-  GameConfig.PROJECTILE_Y_HIGH,
 ] as const;
 
 const TIER_WEIGHTS: { tier: CoinTier; weight: number }[] = [

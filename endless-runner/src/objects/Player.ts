@@ -21,13 +21,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    // Sprite images are ~230×200px; display at 56×50 maintains aspect ratio.
+    // Sprite images are ~230×200px; display at 80×70 maintains aspect ratio.
     // Physics body covers only the character body (not the scarf that trails left).
-    this.setDisplaySize(56, 50);
+    this.setDisplaySize(80, 70);
 
     const body = this.body as Phaser.Physics.Arcade.Body;
-    body.setSize(28, 44);
-    body.setOffset(20, 3);
+    body.setSize(40, 62);
+    body.setOffset(29, 4);
     body.setCollideWorldBounds(true);
     body.setGravityY(GameConfig.GRAVITY);
   }
@@ -96,6 +96,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.isInvincibleFromPowerUp = false;
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setVelocity(0, 0);
-    this.setPosition(GameConfig.PLAYER_X, GameConfig.GROUND_Y - 25);
+    this.setPosition(GameConfig.PLAYER_X, GameConfig.GROUND_Y - 35);
   }
 }
