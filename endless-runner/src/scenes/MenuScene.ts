@@ -52,6 +52,12 @@ export class MenuScene extends Phaser.Scene {
       shadow: { offsetX: 0, offsetY: 0, color: '#ff44aa', blur: 24, fill: true },
     }).setOrigin(0.5);
 
+    this.add.text(width - 8, 8, `v${__APP_VERSION__}`, {
+      fontSize: '13px',
+      color: '#334455',
+      fontFamily: 'monospace',
+    }).setOrigin(1, 0);
+
     // ── High score ───────────────────────────────────────────────────────────
     const scoreText = highScore > 0
       ? `BEST  ${highScore.toLocaleString()}`
