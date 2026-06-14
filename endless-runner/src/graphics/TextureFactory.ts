@@ -29,93 +29,91 @@ export class TextureFactory {
   private static drawNinjaFrame(g: Phaser.GameObjects.Graphics, phase: 0 | 1 | 2 | 3): void {
     g.clear();
 
-    // Glow aura (scaled up for big SD head)
+    // Glow aura
     g.fillStyle(0x00aaff, 0.20);
-    g.fillCircle(20, 13, 16);
-    g.fillRoundedRect(9, 26, 22, 14, 6);
+    g.fillCircle(21, 13, 16);
+    g.fillRoundedRect(10, 26, 22, 14, 6);
 
-    // ── SCARF (drawn first — body covers attachment, trail emerges from left) ─
-    // Different polygon per frame so the trail waves up/down as the character runs
+    // ── SCARF (8-point ribbon, larger amplitude wave per frame) ──────────────
+    // Drawn first so body paints over the attachment point naturally
     g.fillStyle(0x00ffff, 1);
     let sp: { x: number; y: number }[];
     if (phase === 0) {
-      // Trail tip curving UP
-      sp = [{ x: 24, y: 26 }, { x: 12, y: 24 }, { x: 1, y: 22 },
-            { x: 1,  y: 25 }, { x: 12, y: 28 }, { x: 24, y: 32 }];
+      // Tip sweeps UP (left arm is forward = left arm high = scarf up)
+      sp = [{ x: 24, y: 26 }, { x: 17, y: 23 }, { x: 9, y: 20 }, { x: 2, y: 18 },
+            { x: 2, y: 22  }, { x: 9, y: 25  }, { x: 17, y: 28 }, { x: 24, y: 32 }];
     } else if (phase === 2) {
-      // Trail tip curving DOWN
-      sp = [{ x: 24, y: 26 }, { x: 12, y: 28 }, { x: 1, y: 31 },
-            { x: 1,  y: 35 }, { x: 12, y: 33 }, { x: 24, y: 32 }];
+      // Tip sweeps DOWN
+      sp = [{ x: 24, y: 26 }, { x: 17, y: 29 }, { x: 9, y: 32 }, { x: 2, y: 34 },
+            { x: 2, y: 38  }, { x: 9, y: 36  }, { x: 17, y: 32 }, { x: 24, y: 32 }];
     } else {
-      // Trail horizontal / neutral
-      sp = [{ x: 24, y: 26 }, { x: 12, y: 26 }, { x: 1, y: 26 },
-            { x: 1,  y: 30 }, { x: 12, y: 31 }, { x: 24, y: 32 }];
+      // Neutral — horizontal ribbon
+      sp = [{ x: 24, y: 26 }, { x: 17, y: 26 }, { x: 9, y: 26 }, { x: 2, y: 26 },
+            { x: 2, y: 30  }, { x: 9, y: 30  }, { x: 17, y: 31 }, { x: 24, y: 32 }];
     }
     g.fillPoints(sp, true);
 
-    // ── BODY (small — SD proportions, drawn on top of scarf attachment) ──────
+    // ── BODY (small SD, body covers scarf attachment) ─────────────────────────
     g.fillStyle(0x3a5580, 1);
-    g.fillRoundedRect(12, 26, 17, 13, 4);
+    g.fillRoundedRect(13, 26, 17, 13, 4);
 
-    // ── HEAD (large round head — classic SD/chibi) ────────────────────────────
+    // ── HEAD (large, shifted slightly forward of body = forward lean feel) ────
     g.fillStyle(0x2e4468, 1);
-    g.fillCircle(20, 13, 13);
+    g.fillCircle(21, 13, 13);
 
-    // Headband (ninja hitai-ate style)
+    // Hitai-ate headband
     g.fillStyle(0x1a1a2e, 1);
-    g.fillRect(8, 7, 24, 5);
+    g.fillRect(9, 7, 24, 5);
     g.fillStyle(0x4455aa, 1);
-    g.fillRect(14, 7, 12, 5);   // metallic plate center
+    g.fillRect(15, 7, 12, 5);
     g.fillStyle(0x2233aa, 0.6);
-    g.fillRect(16, 9, 8, 2);    // engraved line on plate
+    g.fillRect(17, 9, 8, 2);
 
     // Mask (right side — side profile)
     g.fillStyle(0xffffff, 0.92);
-    g.fillRect(15, 11, 15, 9);
+    g.fillRect(16, 11, 15, 9);
 
-    // Eye — large black (SD manga style), single eye for side profile
+    // Eye — smaller black manga dot (was radius 5 → 3)
     g.fillStyle(0x1a1a2e, 1);
-    g.fillCircle(26, 13, 5);
-    // Eye shine (gives the eye life)
+    g.fillCircle(27, 13, 3);
     g.fillStyle(0xffffff, 0.95);
-    g.fillCircle(24, 11, 1.5);
-    g.fillStyle(0xffffff, 0.5);
-    g.fillCircle(27, 15, 1);
+    g.fillCircle(25, 12, 1.2);
 
-    // ── ARMS (stubby, phase-based swing) ──────────────────────────────────────
-    const leftArmY  = phase === 0 ? 26 : phase === 2 ? 30 : 28;
-    const rightArmY = phase === 0 ? 30 : phase === 2 ? 26 : 28;
+    // ── ARMS (wider swing range for dynamic running pump) ──────────────────────
+    // phase 0: left arm swings far back-high, right arm forward-low
+    const leftArmY  = phase === 0 ? 24 : phase === 2 ? 31 : 27;
+    const rightArmY = phase === 0 ? 31 : phase === 2 ? 24 : 27;
     g.fillStyle(0x3a5580, 1);
-    g.fillRoundedRect(5,  leftArmY,  7, 10, 3);
-    g.fillRoundedRect(28, rightArmY, 7, 10, 3);
+    g.fillRoundedRect(5,  leftArmY,  7, 12, 3);
+    g.fillRoundedRect(29, rightArmY, 7, 12, 3);
     g.fillStyle(0x00ffff, 0.55);
     g.fillRect(6,  leftArmY  + 2, 5, 2);
-    g.fillRect(29, rightArmY + 2, 5, 2);
+    g.fillRect(30, rightArmY + 2, 5, 2);
 
-    // ── LEGS (short and stubby — SD run) ─────────────────────────────────────
+    // ── LEGS (wide stride: forward leg extends right, back leg kicks up-left) ──
     g.fillStyle(0x2a3f5c, 1);
     if (phase === 0) {
-      g.fillRoundedRect(21, 39, 7, 9, 3);
-      g.fillRoundedRect(12, 39, 7, 7, 3);
+      g.fillRoundedRect(23, 38, 8, 11, 3);  // right leg — forward, far right
+      g.fillRoundedRect(9,  36, 8,  9, 3);  // left leg  — kicking up-left (higher y-start)
     } else if (phase === 2) {
-      g.fillRoundedRect(12, 39, 7, 9, 3);
-      g.fillRoundedRect(21, 39, 7, 7, 3);
+      g.fillRoundedRect(10, 38, 8, 11, 3);  // left leg  — forward
+      g.fillRoundedRect(24, 36, 8,  9, 3);  // right leg — kicking back
     } else {
-      g.fillRoundedRect(12, 39, 7, 8, 3);
-      g.fillRoundedRect(21, 39, 7, 8, 3);
+      g.fillRoundedRect(12, 38, 8, 9, 3);
+      g.fillRoundedRect(22, 38, 8, 9, 3);
     }
 
     // ── BOOTS ─────────────────────────────────────────────────────────────────
     g.fillStyle(0x1a2a3a, 1);
     if (phase === 0) {
-      g.fillRoundedRect(19, 47, 10, 4, 2);
-      g.fillRoundedRect(11, 44,  9, 4, 2);
+      g.fillRoundedRect(21, 48, 11, 4, 2);  // forward boot (lower)
+      g.fillRoundedRect(8,  44,  9, 4, 2);  // back boot (higher — kick-up)
     } else if (phase === 2) {
-      g.fillRoundedRect(11, 47, 10, 4, 2);
-      g.fillRoundedRect(19, 44,  9, 4, 2);
+      g.fillRoundedRect(9,  48, 11, 4, 2);
+      g.fillRoundedRect(22, 44,  9, 4, 2);
     } else {
       g.fillRoundedRect(11, 46,  9, 4, 2);
-      g.fillRoundedRect(20, 46,  9, 4, 2);
+      g.fillRoundedRect(21, 46,  9, 4, 2);
     }
 
     g.generateTexture(`ninja-${phase}`, 40, 52);
