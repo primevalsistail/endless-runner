@@ -12,9 +12,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   isInvincibleFromPowerUp = false;
 
   private activePowerUps = new Map<PowerUpType, PowerUp>();
+  private runFrame = 0;
+  private runTimer = 0;
+  private static readonly FRAME_INTERVAL = 110;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, 'ninja');
+    super(scene, x, y, 'ninja-0');
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
@@ -55,6 +58,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.isOnGround = body.blocked.down;
     if (this.isOnGround) this.airJumpUsed = false;
+
+    this.runTimer += deltaMs;
+    if (this.runTimer >= Player.FRAME_INTERVAL) {
+      this.runTimer -= Player.FRAME_INTERVAL;
+      this.runFrame = (this.runFrame + 1) % 4;
+      this.setTexture(`ninja-${this.runFrame}`);
+    }
   }
 
   applyPowerUp(powerUp: PowerUp): void {
