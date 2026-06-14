@@ -21,16 +21,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    // Sprites are pre-scaled to 56×73px (Lanczos) — displayed 1:1, no GPU scaling.
-    // scale=1, so setSize/setOffset are in world pixels directly.
-    // body.bottom = player.y + (offsetY + sourceH - textureH/2) = player.y + (4+65-36.5) = player.y+32.5
-    // spawn at GROUND_Y-33 → body.bottom = GROUND_Y-0.5 ≈ GROUND_Y ✓
-    // Horizontal: skip scarf area on left (~12px), cover right body portion.
+    // Sprites saved at 112×146 (2x display, Lanczos); displayed at 0.5x → 56×73 game units.
+    // GPU does clean 2:1 bilinear — avoids crushing eyes at 4:1.
+    // scaleX=scaleY=0.5, textureH=146, displayOriginY=73
+    // body.bottom = player.y + 0.5*(offsetY + sourceH - 73)
+    //   = player.y + 0.5*(8 + 130 - 73) = player.y + 32.5 ≈ display bottom ✓
+    // spawn at GROUND_Y-33 → body.bottom ≈ GROUND_Y ✓
     this.setDisplaySize(56, 73);
 
     const body = this.body as Phaser.Physics.Arcade.Body;
-    body.setSize(35, 65);
-    body.setOffset(12, 4);
+    // setSize/setOffset in texture-space (112×146); scaleX/Y=0.5 applied internally
+    body.setSize(70, 130);
+    body.setOffset(24, 8);
     body.setCollideWorldBounds(true);
     body.setGravityY(GameConfig.GRAVITY);
   }

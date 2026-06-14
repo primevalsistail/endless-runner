@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite';
-import pkg from './package.json';
+import { execSync } from 'child_process';
+
+const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
 
 export default defineConfig({
   base: '/endless-runner/',
@@ -7,7 +9,7 @@ export default defineConfig({
     host: true,
   },
   define: {
-    __APP_VERSION__: JSON.stringify(pkg.version),
+    __APP_VERSION__: JSON.stringify(commitHash),
   },
   build: {
     target: 'es2020',
