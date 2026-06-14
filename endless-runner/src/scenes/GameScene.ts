@@ -55,7 +55,7 @@ export class GameScene extends Phaser.Scene {
       GameConfig.WIDTH, 2, 0x00f5ff
     );
 
-    this.player = new Player(this, GameConfig.PLAYER_X, GameConfig.GROUND_Y - 37);
+    this.player = new Player(this, GameConfig.PLAYER_X, GameConfig.GROUND_Y - 33);
     this.physics.add.collider(this.player, ground);
 
     this.gameStateManager = new GameStateManager(this);
