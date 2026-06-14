@@ -21,13 +21,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    // Sprite images are ~222×293px; display at 65×86.
+    // Sprite images are ~222×293px; display at 55×73.
     // setSize/setOffset take TEXTURE-space pixels — Phaser multiplies by scaleX/scaleY internally.
-    // scaleY = 86/293 = 0.2935, displayOriginY = 0.5*293 = 146.5
+    // scaleY = 73/293 = 0.249, displayOriginY = 0.5*293 = 146.5
     // body.bottom = player.y + scaleY*(offsetY + sourceH - displayOriginY)
-    //   = player.y + 0.2935*(5 + 288 - 146.5) = player.y + 43 = display bottom ✓
+    //   = player.y + 0.249*(5 + 288 - 146.5) = player.y + 36.5 = display bottom ✓
     // Horizontal: skip scarf on left (texture x=80+), width=122px (right ~55% of 222px sprite).
-    this.setDisplaySize(65, 86);
+    this.setDisplaySize(55, 73);
 
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setSize(122, 288);
@@ -100,6 +100,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.isInvincibleFromPowerUp = false;
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setVelocity(0, 0);
-    this.setPosition(GameConfig.PLAYER_X, GameConfig.GROUND_Y - 43);
+    this.setPosition(GameConfig.PLAYER_X, GameConfig.GROUND_Y - 37);
   }
 }
