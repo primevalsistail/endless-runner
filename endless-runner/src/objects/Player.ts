@@ -14,12 +14,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private activePowerUps = new Map<PowerUpType, PowerUp>();
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, '');
+    super(scene, x, y, 'ninja');
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
     this.setDisplaySize(40, 50);
-    this.setTint(0x4488ff);
 
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setCollideWorldBounds(true);

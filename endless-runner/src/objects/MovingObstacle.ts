@@ -1,5 +1,5 @@
-import Phaser from 'phaser';
 import { Obstacle } from './Obstacle';
+import type Phaser from 'phaser';
 
 export class MovingObstacle extends Obstacle {
   private amplitude = 60;
@@ -7,6 +7,10 @@ export class MovingObstacle extends Obstacle {
   private phaseOffset = 0;
   private baseY = 0;
   private elapsed = 0;
+
+  constructor(scene: Phaser.Scene) {
+    super(scene, 'drone');
+  }
 
   activateMoving(
     x: number, y: number, width: number, height: number,
@@ -18,15 +22,11 @@ export class MovingObstacle extends Obstacle {
     this.phaseOffset = phaseOffset;
     this.baseY = y;
     this.elapsed = 0;
-    this.setFillStyle(0xff8800);
   }
 
   update(deltaMs: number): void {
     this.elapsed += deltaMs;
-    const deltaSeconds = deltaMs / 1000;
-    this.x -= this.scrollSpeed * deltaSeconds;
+    this.x -= this.scrollSpeed * (deltaMs / 1000);
     this.y = this.baseY + Math.sin(this.elapsed * this.frequency + this.phaseOffset) * this.amplitude;
-    const body = this.body as Phaser.Physics.Arcade.StaticBody;
-    body.reset(this.x, this.y);
   }
 }

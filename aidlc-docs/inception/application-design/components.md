@@ -87,12 +87,30 @@
 
 ---
 
-## グラフィック方針（v1）
+## BackgroundManager（v1.2 新規追加）
+
+- **種別**: TypeScript クラス（Phaser.Scene に依存）
+- **責務**: パララックス多層背景の生成・スクロール管理
+- **レイヤー**: スカイ（固定）・遠景ビル・中景ビル・地面装飾の4層
+- **実装**: TileSprite または Graphics × 2枚ループ方式
+
+---
+
+## グラフィック方針（v1.2 — ネオン都市×忍者）
+
+詳細は [graphics-design.md](./graphics-design.md) を参照。
 
 | ゲームオブジェクト | 表現 |
 |-----------------|------|
-| Player | 青い四角形（Phaser.GameObjects.Rectangle） |
-| StaticObstacle | 赤い四角形 |
-| MovingObstacle | オレンジの丸形（Phaser.GameObjects.Ellipse） |
-| PowerUpItem | 黄色い星型または菱形 |
-| 背景 | 単色（グレー系） |
+| Player | 忍者（黒ボディ・シアンスカーフ・赤い目）|
+| StaticObstacle | ネオンバリケード（ダーク地にオレンジ縞） |
+| MovingObstacle | ドローン（灰色ボディ・緑センサー目） |
+| ProjectileObstacle | 手裏剣（4頂点星・回転アニメ） |
+| ScoreItem（金） | 古銭コイン・大（金色、500pts） |
+| ScoreItem（銀） | 古銭コイン・中（銀色、200pts） |
+| ScoreItem（銅） | 古銭コイン・小（銅色、100pts） |
+| RecoveryItem | 絆創膏（ピンク端・白ガーゼ） |
+| PowerUpItem（ダブルジャンプ） | 靴 + モーションライン（飛んでいる表現） |
+| PowerUpItem（無敵） | 盾（鋼青・金縁） |
+| 背景 | パララックス4層（ネオン都市夜景） |
+| 地面 | ダーク地 + シアンネオンライン |

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GameConfig } from '../config/GameConfig';
-import { ScoreItem } from '../objects/ScoreItem';
+import { ScoreItem, type CoinTier } from '../objects/ScoreItem';
 import { RecoveryItem } from '../objects/RecoveryItem';
 
 const ITEM_LANES = [
@@ -8,6 +8,22 @@ const ITEM_LANES = [
   GameConfig.PROJECTILE_Y_MID,
   GameConfig.PROJECTILE_Y_HIGH,
 ] as const;
+
+const TIER_WEIGHTS: { tier: CoinTier; weight: number }[] = [
+  { tier: 'gold', weight: 20 },
+  { tier: 'silver', weight: 30 },
+  { tier: 'bronze', weight: 50 },
+];
+
+function pickTier(): CoinTier {
+  const roll = Math.random() * 100;
+  let cumulative = 0;
+  for (const { tier, weight } of TIER_WEIGHTS) {
+    cumulative += weight;
+    if (roll < cumulative) return tier;
+  }
+  return 'bronze';
+}
 
 export class ItemManager {
   private scorePool: ScoreItem[] = [];
@@ -49,7 +65,7 @@ export class ItemManager {
     const item = this.scorePool.find(i => !i.active);
     if (!item) return;
     const y = ITEM_LANES[Math.floor(Math.random() * ITEM_LANES.length)];
-    item.activate(GameConfig.WIDTH + 50, y, gameSpeed);
+    item.activate(GameConfig.WIDTH + 50, y, gameSpeed, pickTier());
   }
 
   private spawnRecovery(gameSpeed: number): void {

@@ -8,6 +8,7 @@ import { DifficultyManager } from '../managers/DifficultyManager';
 import { GameStateManager } from '../managers/GameStateManager';
 import { LifeManager } from '../managers/LifeManager';
 import { ItemManager } from '../managers/ItemManager';
+import { BackgroundManager } from '../managers/BackgroundManager';
 import { GameHUD } from '../hud/GameHUD';
 import { InMemoryPersistenceService, type IPersistenceService } from '../services/IPersistenceService';
 import { StorageService } from '../services/StorageService';
@@ -21,6 +22,7 @@ export class GameScene extends Phaser.Scene {
   private gameStateManager!: GameStateManager;
   private lifeManager!: LifeManager;
   private itemManager!: ItemManager;
+  private backgroundManager!: BackgroundManager;
   private hud!: GameHUD;
 
   private countdownRemaining = GameConfig.COUNTDOWN_DURATION;
@@ -39,11 +41,19 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.backgroundManager = new BackgroundManager();
+    this.backgroundManager.create(this);
+
     const ground = this.add.rectangle(
       GameConfig.WIDTH / 2, GameConfig.GROUND_Y + 10,
-      GameConfig.WIDTH, 20, 0x888888
+      GameConfig.WIDTH, 20, 0x1a1a3a
     );
     this.physics.add.existing(ground, true);
+    // Neon ground line
+    this.add.rectangle(
+      GameConfig.WIDTH / 2, GameConfig.GROUND_Y,
+      GameConfig.WIDTH, 2, 0x00f5ff
+    );
 
     this.player = new Player(this, GameConfig.PLAYER_X, GameConfig.GROUND_Y - 25);
     this.physics.add.collider(this.player, ground);
@@ -99,6 +109,7 @@ export class GameScene extends Phaser.Scene {
     const level = this.difficultyManager.level;
     const interval = this.difficultyManager.obstacleInterval;
 
+    this.backgroundManager.update(deltaMs, speed);
     this.player.update(deltaMs);
     this.lifeManager.update(deltaMs);
     this.obstacleManager.update(deltaMs, speed, level, interval);
@@ -170,7 +181,7 @@ export class GameScene extends Phaser.Scene {
 
     for (const item of this.itemManager.getActiveScoreItems()) {
       if (Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, item.getBounds())) {
-        this.scoreManager.addBonus(GameConfig.SCORE_ITEM_BONUS);
+        this.scoreManager.addBonus(item.bonusValue);
         item.deactivate();
       }
     }

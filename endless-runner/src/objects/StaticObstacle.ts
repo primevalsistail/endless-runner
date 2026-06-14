@@ -1,16 +1,12 @@
-import Phaser from 'phaser';
 import { Obstacle } from './Obstacle';
+import type Phaser from 'phaser';
 
 export class StaticObstacle extends Obstacle {
   constructor(scene: Phaser.Scene) {
-    super(scene);
-    this.setFillStyle(0xee4444);
+    super(scene, 'barricade');
   }
 
   update(deltaMs: number): void {
-    const deltaSeconds = deltaMs / 1000;
-    this.x -= this.scrollSpeed * deltaSeconds;
-    const body = this.body as Phaser.Physics.Arcade.StaticBody;
-    body.reset(this.x, this.y);
+    this.x -= this.scrollSpeed * (deltaMs / 1000);
   }
 }
