@@ -127,15 +127,16 @@ export class GameHUD {
   showMilestone(label: string): void {
     const cx = GameConfig.WIDTH / 2;
 
-    // Subtle screen flash
-    const flash = this.scene.add.rectangle(cx, GameConfig.HEIGHT / 2, GameConfig.WIDTH, GameConfig.HEIGHT, 0x00ffff, 0)
-      .setDepth(14);
+    // Pulse the distance counter in the corner
     this.scene.tweens.add({
-      targets: flash,
-      alpha: { from: 0, to: 0.12 },
-      duration: 120,
+      targets: this.distanceText,
+      scaleX: 1.3,
+      scaleY: 1.3,
+      duration: 160,
       yoyo: true,
-      onComplete: () => flash.destroy(),
+      ease: 'Sine.easeOut',
+      onStart: () => this.distanceText.setColor('#00ffff'),
+      onComplete: () => this.distanceText.setColor('#449988'),
     });
 
     // Milestone text
