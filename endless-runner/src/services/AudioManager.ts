@@ -34,9 +34,14 @@ export class AudioManager {
   playBGM(key: string): void {
     if (this.bgmKey === key && this.bgmSound?.isPlaying) return;
     this.stopBGM();
-    this.bgmKey = key;
-    this.bgmSound = this.soundManager.add(key, { loop: true, volume: this.bgmVolume });
-    this.bgmSound.play();
+    try {
+      this.bgmKey = key;
+      this.bgmSound = this.soundManager.add(key, { loop: true, volume: this.bgmVolume });
+      this.bgmSound.play();
+    } catch {
+      this.bgmSound = null;
+      this.bgmKey = '';
+    }
   }
 
   stopBGM(): void {
@@ -81,8 +86,11 @@ export class AudioManager {
 
   playSFX(key: string): void {
     if (!this.sfxEnabled) return;
-    if (!this.soundManager.get(key) && !this.soundManager.game.cache.audio.has(key)) return;
-    this.soundManager.play(key, { volume: this.sfxVolume });
+    try {
+      this.soundManager.play(key, { volume: this.sfxVolume });
+    } catch {
+      // audio file not loaded — skip silently
+    }
   }
 
   setSfxVolume(volume: number): void {
