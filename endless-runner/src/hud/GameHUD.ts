@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GameConfig } from '../config/GameConfig';
+import { AudioManager } from '../services/AudioManager';
 
 interface PauseCallbacks {
   onPause: () => void;
@@ -17,11 +18,13 @@ export class GameHUD {
   private pauseMenuItems: Phaser.GameObjects.Text[] = [];
   private confirmGroup: Phaser.GameObjects.GameObject[] = [];
   private countdownText: Phaser.GameObjects.Text;
+  private audioGroup: Phaser.GameObjects.GameObject[] = [];
+  private audioHandles: Phaser.GameObjects.Arc[] = [];
 
   constructor(scene: Phaser.Scene, callbacks: PauseCallbacks) {
     const { onPause, onRetry, onTitle } = callbacks;
 
-    // Pause button (top-left, leftmost)
+    // Pause button (top-left)
     this.pauseButton = scene.add.text(14, 12, '⏸', {
       fontSize: '22px', color: '#cccccc', fontFamily: 'monospace'
     }).setDepth(10).setInteractive({ useHandCursor: true });
@@ -34,7 +37,7 @@ export class GameHUD {
       fontSize: '28px', color: '#ff4444', fontFamily: 'monospace'
     }).setDepth(10);
 
-    // PowerUp timers (below lives)
+    // PowerUp timers
     this.powerUpText = scene.add.text(50, 46, '', {
       fontSize: '14px', color: '#ffee00', fontFamily: 'monospace'
     }).setDepth(10);
@@ -50,31 +53,53 @@ export class GameHUD {
       GameConfig.WIDTH, GameConfig.HEIGHT, 0x000000, 0.75
     ).setDepth(19).setVisible(false);
 
-    // PAUSED title
-    this.pauseOverlay = scene.add.text(GameConfig.WIDTH / 2, 140, 'PAUSED', {
+    // PAUSED title (moved up to make room for audio sliders)
+    this.pauseOverlay = scene.add.text(GameConfig.WIDTH / 2, 90, 'PAUSED', {
       fontSize: '56px', color: '#ffffff', fontFamily: 'monospace',
       stroke: '#000000', strokeThickness: 5,
     }).setOrigin(0.5).setDepth(20).setVisible(false);
 
-    // Pause menu buttons
+    // ── Audio sliders in pause menu ────────────────────────────────────────
     const cx = GameConfig.WIDTH / 2;
+    const audio = AudioManager.getInstance();
+
+    const audioTitle = scene.add.text(cx, 158, 'AUDIO', {
+      fontSize: '11px', color: '#445566', fontFamily: 'monospace', letterSpacing: 4,
+    }).setOrigin(0.5).setDepth(20).setVisible(false);
+
+    const trackW = 160;
+    const { objects: bgmObjs, handle: bgmHandle } = this.makeSlider(
+      scene, cx, 180, trackW, 'BGM',
+      audio.getBgmVolume(), v => AudioManager.getInstance().setBgmVolume(v),
+    );
+    const { objects: sfxObjs, handle: sfxHandle } = this.makeSlider(
+      scene, cx, 208, trackW, 'SFX',
+      audio.getSfxVolume(), v => AudioManager.getInstance().setSfxVolume(v),
+    );
+
+    this.audioGroup = [audioTitle, ...bgmObjs, bgmHandle, ...sfxObjs, sfxHandle];
+    this.audioHandles = [bgmHandle, sfxHandle];
+    this.audioGroup.forEach(o => (o as Phaser.GameObjects.GameObject & { setDepth: (n: number) => void }).setDepth(20));
+    this.audioHandles.forEach(h => h.disableInteractive());
+
+    // ── Pause menu buttons (repositioned) ─────────────────────────────────
     const btnStyle = { fontSize: '28px', fontFamily: 'monospace', color: '#aaffaa' };
 
-    const resumeBtn = scene.add.text(cx, 230, '▶  再開', btnStyle)
+    const resumeBtn = scene.add.text(cx, 252, '▶  再開', btnStyle)
       .setOrigin(0.5).setDepth(20).setVisible(false)
       .setInteractive({ useHandCursor: true });
     resumeBtn.on('pointerover', () => resumeBtn.setColor('#ffffff'));
     resumeBtn.on('pointerout', () => resumeBtn.setColor('#aaffaa'));
     resumeBtn.on('pointerdown', onPause);
 
-    const retryBtn = scene.add.text(cx, 295, '↺  リトライ', btnStyle)
+    const retryBtn = scene.add.text(cx, 312, '↺  リトライ', btnStyle)
       .setOrigin(0.5).setDepth(20).setVisible(false)
       .setInteractive({ useHandCursor: true });
     retryBtn.on('pointerover', () => retryBtn.setColor('#ffffff'));
     retryBtn.on('pointerout', () => retryBtn.setColor('#aaffaa'));
     retryBtn.on('pointerdown', () => this.showConfirm(scene, 'リトライしますか？', onRetry));
 
-    const titleBtn = scene.add.text(cx, 360, '⌂  タイトルへ', btnStyle)
+    const titleBtn = scene.add.text(cx, 372, '⌂  タイトルへ', btnStyle)
       .setOrigin(0.5).setDepth(20).setVisible(false)
       .setInteractive({ useHandCursor: true });
     titleBtn.on('pointerover', () => titleBtn.setColor('#ffffff'));
@@ -87,6 +112,38 @@ export class GameHUD {
     this.countdownText = scene.add.text(GameConfig.WIDTH / 2, GameConfig.HEIGHT / 2, '', {
       fontSize: '72px', color: '#ffffff', fontFamily: 'monospace'
     }).setOrigin(0.5).setDepth(10);
+  }
+
+  private makeSlider(
+    scene: Phaser.Scene,
+    cx: number, y: number, trackW: number,
+    label: string, initial: number,
+    onChange: (v: number) => void,
+  ): { objects: Phaser.GameObjects.GameObject[]; handle: Phaser.GameObjects.Arc } {
+    const left = cx - trackW / 2;
+    const labelStyle = { fontSize: '11px', color: '#88aacc', fontFamily: 'monospace' };
+    const pctStyle   = { fontSize: '11px', color: '#aaccdd', fontFamily: 'monospace' };
+
+    const labelObj = scene.add.text(left - 6, y, label, labelStyle).setOrigin(1, 0.5).setVisible(false);
+    const track    = scene.add.rectangle(cx, y, trackW, 3, 0x223344).setVisible(false);
+    const fill     = scene.add.rectangle(left + (initial * trackW) / 2, y, initial * trackW, 3, 0x00ccff).setVisible(false);
+    const handle   = scene.add.circle(left + initial * trackW, y, 7, 0x00ffff)
+      .setInteractive({ useHandCursor: true }).setVisible(false);
+    scene.input.setDraggable(handle);
+    const pct = scene.add.text(left + trackW + 8, y, `${Math.round(initial * 100)}%`, pctStyle)
+      .setOrigin(0, 0.5).setVisible(false);
+
+    handle.on('drag', (_ptr: Phaser.Input.Pointer, dragX: number) => {
+      const clampedX = Phaser.Math.Clamp(dragX, left, left + trackW);
+      handle.x = clampedX;
+      const v = (clampedX - left) / trackW;
+      fill.setSize(v * trackW || 1, 3);
+      fill.x = left + (v * trackW) / 2;
+      pct.setText(`${Math.round(v * 100)}%`);
+      onChange(v);
+    });
+
+    return { objects: [labelObj, track, fill, pct], handle };
   }
 
   private showConfirm(scene: Phaser.Scene, message: string, onYes: () => void): void {
@@ -145,6 +202,10 @@ export class GameHUD {
     this.pauseMenuItems.forEach(b => b.setVisible(paused));
     this.pauseButton.setText(paused ? '▶' : '⏸');
     if (!paused) this.clearConfirm();
+
+    // Audio sliders
+    this.audioGroup.forEach(o => (o as Phaser.GameObjects.GameObject & { setVisible: (v: boolean) => void }).setVisible(paused));
+    this.audioHandles.forEach(h => paused ? h.setInteractive({ useHandCursor: true }) : h.disableInteractive());
   }
 
   showCountdown(value: string): void {

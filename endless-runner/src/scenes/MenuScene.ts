@@ -6,6 +6,8 @@ import { AudioManager } from '../services/AudioManager';
 export class MenuScene extends Phaser.Scene {
   private farLayer!: Phaser.GameObjects.TileSprite;
   private midLayer!: Phaser.GameObjects.TileSprite;
+  private settingsOpen = false;
+  private settingsGroup: Phaser.GameObjects.GameObject[] = [];
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -31,7 +33,6 @@ export class MenuScene extends Phaser.Scene {
     this.add.rectangle(cx, GameConfig.GROUND_Y,      width, 2,  0x00f5ff);
 
     // ── Title ────────────────────────────────────────────────────────────────
-    // Horizontal neon lines framing the title
     this.add.rectangle(cx, 82,  width * 0.55, 2, 0x00f5ff, 0.55);
     this.add.rectangle(cx, 194, width * 0.55, 2, 0xff44aa, 0.55);
 
@@ -100,60 +101,86 @@ export class MenuScene extends Phaser.Scene {
 
     let started = false;
     const goToGame = (): void => {
-      if (started) return;
+      if (started || this.settingsOpen) return;
       started = true;
       this.scene.start('GameScene');
     };
     startBtn.on('pointerdown', goToGame);
     this.input.on('pointerdown', goToGame);
 
+    // ── Gear icon (audio settings) ───────────────────────────────────────────
+    const gearBtn = this.add.text(14, 14, '⚙', {
+      fontSize: '22px',
+      color: '#88aacc',
+      fontFamily: 'monospace',
+    }).setDepth(5).setInteractive({ useHandCursor: true });
+    gearBtn.on('pointerover', () => gearBtn.setColor('#00ffff'));
+    gearBtn.on('pointerout', () => gearBtn.setColor('#88aacc'));
+    gearBtn.on('pointerdown', () => {
+      if (!this.settingsOpen) this.openSettings(cx);
+    });
+
     AudioManager.getInstance().playBGM('menu-bgm');
-    this.createVolumeControls(cx, 420);
   }
 
-  private createVolumeControls(cx: number, baseY: number): void {
+  private openSettings(cx: number): void {
+    this.settingsOpen = true;
     const audio = AudioManager.getInstance();
+    const panelCy = 210;
+
+    // Full-screen dim overlay — intercepts clicks to close the panel
+    const overlay = this.add.rectangle(
+      cx, GameConfig.HEIGHT / 2,
+      GameConfig.WIDTH, GameConfig.HEIGHT,
+      0x000000, 0.65,
+    ).setDepth(9).setInteractive();
+    overlay.on('pointerdown', () => this.closeSettings());
+
+    // Panel box — absorbs clicks so they don't hit the overlay behind
+    const panel = this.add.rectangle(cx, panelCy, 280, 110, 0x001a2e)
+      .setDepth(10).setStrokeStyle(1, 0x004466).setInteractive();
+
+    const audioLabel = this.add.text(cx, panelCy - 43, 'AUDIO', {
+      fontSize: '11px', color: '#445566', fontFamily: 'monospace', letterSpacing: 4,
+    }).setOrigin(0.5).setDepth(11);
+
     const trackW = 160;
+    const bgmObjs = this.makeSliderObjects(
+      cx, panelCy - 14, trackW, 'BGM',
+      audio.getBgmVolume(), v => audio.setBgmVolume(v),
+    );
+    const sfxObjs = this.makeSliderObjects(
+      cx, panelCy + 18, trackW, 'SFX',
+      audio.getSfxVolume(), v => audio.setSfxVolume(v),
+    );
+
+    this.settingsGroup = [overlay, panel, audioLabel, ...bgmObjs, ...sfxObjs];
+  }
+
+  private closeSettings(): void {
+    this.settingsGroup.forEach(o => o.destroy());
+    this.settingsGroup = [];
+    // Defer flag so this same pointerdown event doesn't also trigger goToGame
+    this.time.delayedCall(0, () => { this.settingsOpen = false; });
+  }
+
+  private makeSliderObjects(
+    cx: number, y: number, trackW: number,
+    label: string, initial: number,
+    onChange: (v: number) => void,
+  ): Phaser.GameObjects.GameObject[] {
+    const left = cx - trackW / 2;
     const labelStyle = { fontSize: '11px', color: '#88aacc', fontFamily: 'monospace' };
     const pctStyle   = { fontSize: '11px', color: '#aaccdd', fontFamily: 'monospace' };
 
-    this.add.text(cx, baseY - 14, 'AUDIO', {
-      fontSize: '11px', color: '#445566', fontFamily: 'monospace', letterSpacing: 4,
-    }).setOrigin(0.5);
-
-    this.makeSlider(cx, baseY + 8,  trackW, 'BGM', audio.getBgmVolume(), labelStyle, pctStyle,
-      (v) => audio.setBgmVolume(v));
-    this.makeSlider(cx, baseY + 34, trackW, 'SFX', audio.getSfxVolume(), labelStyle, pctStyle,
-      (v) => audio.setSfxVolume(v));
-  }
-
-  private makeSlider(
-    cx: number, y: number, trackW: number,
-    label: string, initial: number,
-    labelStyle: object, pctStyle: object,
-    onChange: (v: number) => void,
-  ): void {
-    const left = cx - trackW / 2;
-
-    this.add.text(left - 6, y, label, labelStyle).setOrigin(1, 0.5);
-
-    // Track
-    this.add.rectangle(cx, y, trackW, 3, 0x223344);
-
-    // Fill
-    const fill = this.add.rectangle(
-      left + (initial * trackW) / 2, y,
-      initial * trackW, 3, 0x00ccff,
-    );
-
-    // Handle
+    const labelObj = this.add.text(left - 6, y, label, labelStyle).setOrigin(1, 0.5).setDepth(11);
+    const track = this.add.rectangle(cx, y, trackW, 3, 0x223344).setDepth(11);
+    const fill  = this.add.rectangle(left + (initial * trackW) / 2, y, initial * trackW, 3, 0x00ccff).setDepth(11);
     const handle = this.add.circle(left + initial * trackW, y, 7, 0x00ffff)
-      .setInteractive({ useHandCursor: true });
+      .setInteractive({ useHandCursor: true }).setDepth(12);
     this.input.setDraggable(handle);
-
-    // Percentage label
     const pct = this.add.text(left + trackW + 8, y, `${Math.round(initial * 100)}%`, pctStyle)
-      .setOrigin(0, 0.5);
+      .setOrigin(0, 0.5).setDepth(11);
 
     handle.on('drag', (_ptr: Phaser.Input.Pointer, dragX: number) => {
       const clampedX = Phaser.Math.Clamp(dragX, left, left + trackW);
@@ -164,6 +191,8 @@ export class MenuScene extends Phaser.Scene {
       pct.setText(`${Math.round(v * 100)}%`);
       onChange(v);
     });
+
+    return [labelObj, track, fill, handle, pct];
   }
 
   update(_time: number, delta: number): void {
