@@ -124,10 +124,7 @@ export class GameHUD {
 
   // ── Effects ──────────────────────────────────────────────────────────────
 
-  showMilestone(label: string): void {
-    const cx = GameConfig.WIDTH / 2;
-
-    // Pulse the distance counter in the corner
+  showMilestone(_label: string): void {
     this.scene.tweens.add({
       targets: this.distanceText,
       scaleX: 1.3,
@@ -137,35 +134,6 @@ export class GameHUD {
       ease: 'Sine.easeOut',
       onStart: () => this.distanceText.setColor('#00ffff'),
       onComplete: () => this.distanceText.setColor('#449988'),
-    });
-
-    // Milestone text
-    const text = this.scene.add.text(cx, 180, label, {
-      fontSize: '46px',
-      color: '#00ffff',
-      fontFamily: 'monospace',
-      stroke: '#002233',
-      strokeThickness: 5,
-      shadow: { offsetX: 0, offsetY: 0, color: '#00ffff', blur: 22, fill: true },
-    }).setOrigin(0.5).setDepth(15).setAlpha(0).setScale(1.2);
-
-    this.scene.tweens.add({
-      targets: text,
-      alpha: 1,
-      scale: 1,
-      duration: 250,
-      ease: 'Back.easeOut',
-      onComplete: () => {
-        this.scene.tweens.add({
-          targets: text,
-          alpha: 0,
-          y: text.y - 28,
-          duration: 700,
-          delay: 600,
-          ease: 'Sine.easeIn',
-          onComplete: () => text.destroy(),
-        });
-      },
     });
   }
 

@@ -130,10 +130,10 @@ export class GameScene extends Phaser.Scene {
 
     const meters = this.scoreManager.distanceTraveled;
     this.hud.updateDistance(meters);
-    const milestone = Math.floor(meters / 500);
+    const milestone = Math.floor(meters / 10000);
     if (milestone > this.lastMilestone) {
       this.lastMilestone = milestone;
-      this.hud.showMilestone(`${milestone * 500}m`);
+      this.hud.showMilestone(`${milestone * 10000}m`);
     }
 
     this.hud.updatePowerUp(
