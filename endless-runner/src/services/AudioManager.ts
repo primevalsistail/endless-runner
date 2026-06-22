@@ -81,6 +81,7 @@ export class AudioManager {
 
   playSFX(key: string): void {
     if (!this.sfxEnabled) return;
+    if (!this.soundManager.get(key) && !this.soundManager.game.cache.audio.has(key)) return;
     this.soundManager.play(key, { volume: this.sfxVolume });
   }
 
