@@ -28,6 +28,7 @@ export class GameScene extends Phaser.Scene {
 
   private countdownRemaining = GameConfig.COUNTDOWN_DURATION;
   private countdownElapsed = 0;
+  private lastMilestone = 0;
 
   private persistence: IPersistenceService = typeof localStorage !== 'undefined'
     ? new StorageService()
@@ -126,6 +127,15 @@ export class GameScene extends Phaser.Scene {
     this.difficultyManager.update(this.scoreManager.distanceTraveled);
 
     this.hud.updateScore(this.scoreManager.currentScore);
+
+    const meters = this.scoreManager.distanceTraveled;
+    this.hud.updateDistance(meters);
+    const milestone = Math.floor(meters / 500);
+    if (milestone > this.lastMilestone) {
+      this.lastMilestone = milestone;
+      this.hud.showMilestone(`${milestone * 500}m`);
+    }
+
     this.hud.updatePowerUp(
       this.powerUpManager.getRemainingTime('doubleJump'),
       this.powerUpManager.getRemainingTime('invincibility'),
@@ -197,6 +207,7 @@ export class GameScene extends Phaser.Scene {
       if (Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, item.getBounds())) {
         audio.playSFX('coin');
         this.scoreManager.addBonus(item.bonusValue);
+        this.hud.showCoinPickup(item.x, item.y, item.bonusValue);
         item.deactivate();
       }
     }

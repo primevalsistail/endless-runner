@@ -9,7 +9,9 @@ interface PauseCallbacks {
 }
 
 export class GameHUD {
+  private scene: Phaser.Scene;
   private scoreText: Phaser.GameObjects.Text;
+  private distanceText: Phaser.GameObjects.Text;
   private powerUpText: Phaser.GameObjects.Text;
   private livesText: Phaser.GameObjects.Text;
   private pauseButton: Phaser.GameObjects.Text;
@@ -22,6 +24,7 @@ export class GameHUD {
   private audioHandles: Phaser.GameObjects.Arc[] = [];
 
   constructor(scene: Phaser.Scene, callbacks: PauseCallbacks) {
+    this.scene = scene;
     const { onPause, onRetry, onTitle } = callbacks;
 
     // Pause button (top-left)
@@ -32,7 +35,7 @@ export class GameHUD {
     this.pauseButton.on('pointerover', () => this.pauseButton.setColor('#ffffff'));
     this.pauseButton.on('pointerout', () => this.pauseButton.setColor('#cccccc'));
 
-    // Lives (top-left, right of pause button)
+    // Lives
     this.livesText = scene.add.text(50, 10, this.buildLivesString(GameConfig.MAX_LIVES), {
       fontSize: '28px', color: '#ff4444', fontFamily: 'monospace'
     }).setDepth(10);
@@ -47,13 +50,18 @@ export class GameHUD {
       fontSize: '20px', color: '#ffffff', fontFamily: 'monospace'
     }).setOrigin(1, 0).setDepth(10);
 
+    // Distance (below score, smaller)
+    this.distanceText = scene.add.text(GameConfig.WIDTH - 16, 44, '0m', {
+      fontSize: '14px', color: '#449988', fontFamily: 'monospace'
+    }).setOrigin(1, 0).setDepth(10);
+
     // Pause overlay background
     this.pauseBg = scene.add.rectangle(
       GameConfig.WIDTH / 2, GameConfig.HEIGHT / 2,
       GameConfig.WIDTH, GameConfig.HEIGHT, 0x000000, 0.75
     ).setDepth(19).setVisible(false);
 
-    // PAUSED title (moved up to make room for audio sliders)
+    // PAUSED title
     this.pauseOverlay = scene.add.text(GameConfig.WIDTH / 2, 90, 'PAUSED', {
       fontSize: '56px', color: '#ffffff', fontFamily: 'monospace',
       stroke: '#000000', strokeThickness: 5,
@@ -82,7 +90,7 @@ export class GameHUD {
     this.audioGroup.forEach(o => (o as Phaser.GameObjects.GameObject & { setDepth: (n: number) => void }).setDepth(20));
     this.audioHandles.forEach(h => h.disableInteractive());
 
-    // ── Pause menu buttons (repositioned) ─────────────────────────────────
+    // ── Pause menu buttons ─────────────────────────────────────────────────
     const btnStyle = { fontSize: '28px', fontFamily: 'monospace', color: '#aaffaa' };
 
     const resumeBtn = scene.add.text(cx, 252, '▶  再開', btnStyle)
@@ -113,6 +121,114 @@ export class GameHUD {
       fontSize: '72px', color: '#ffffff', fontFamily: 'monospace'
     }).setOrigin(0.5).setDepth(10);
   }
+
+  // ── Effects ──────────────────────────────────────────────────────────────
+
+  showMilestone(label: string): void {
+    const cx = GameConfig.WIDTH / 2;
+
+    // Subtle screen flash
+    const flash = this.scene.add.rectangle(cx, GameConfig.HEIGHT / 2, GameConfig.WIDTH, GameConfig.HEIGHT, 0x00ffff, 0)
+      .setDepth(14);
+    this.scene.tweens.add({
+      targets: flash,
+      alpha: { from: 0, to: 0.12 },
+      duration: 120,
+      yoyo: true,
+      onComplete: () => flash.destroy(),
+    });
+
+    // Milestone text
+    const text = this.scene.add.text(cx, 180, label, {
+      fontSize: '46px',
+      color: '#00ffff',
+      fontFamily: 'monospace',
+      stroke: '#002233',
+      strokeThickness: 5,
+      shadow: { offsetX: 0, offsetY: 0, color: '#00ffff', blur: 22, fill: true },
+    }).setOrigin(0.5).setDepth(15).setAlpha(0).setScale(1.2);
+
+    this.scene.tweens.add({
+      targets: text,
+      alpha: 1,
+      scale: 1,
+      duration: 250,
+      ease: 'Back.easeOut',
+      onComplete: () => {
+        this.scene.tweens.add({
+          targets: text,
+          alpha: 0,
+          y: text.y - 28,
+          duration: 700,
+          delay: 600,
+          ease: 'Sine.easeIn',
+          onComplete: () => text.destroy(),
+        });
+      },
+    });
+  }
+
+  showCoinPickup(x: number, y: number, value: number): void {
+    const color = value >= 500 ? '#ffdd00' : value >= 200 ? '#ccccff' : '#cc9944';
+    const text = this.scene.add.text(x, y - 16, `+${value}`, {
+      fontSize: '15px',
+      color,
+      fontFamily: 'monospace',
+      stroke: '#000000',
+      strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(15);
+
+    this.scene.tweens.add({
+      targets: text,
+      y: y - 60,
+      alpha: 0,
+      duration: 650,
+      ease: 'Sine.easeOut',
+      onComplete: () => text.destroy(),
+    });
+  }
+
+  // ── Standard update methods ───────────────────────────────────────────────
+
+  updateScore(score: number): void {
+    this.scoreText.setText(`SCORE: ${score.toLocaleString()}`);
+  }
+
+  updateDistance(meters: number): void {
+    this.distanceText.setText(`${Math.floor(meters)}m`);
+  }
+
+  updatePowerUp(djRemaining: number, invRemaining: number): void {
+    const parts: string[] = [];
+    if (djRemaining > 0) parts.push(`2x JUMP ${Math.ceil(djRemaining / 1000)}s`);
+    if (invRemaining > 0) parts.push(`★ INVINCIBLE ${Math.ceil(invRemaining / 1000)}s`);
+    this.powerUpText.setText(parts.join('  '));
+  }
+
+  updateLives(lives: number): void {
+    this.livesText.setText(this.buildLivesString(lives));
+  }
+
+  setPaused(paused: boolean): void {
+    this.pauseBg.setVisible(paused);
+    this.pauseOverlay.setVisible(paused);
+    this.pauseMenuItems.forEach(b => b.setVisible(paused));
+    this.pauseButton.setText(paused ? '▶' : '⏸');
+    if (!paused) this.clearConfirm();
+
+    this.audioGroup.forEach(o => (o as Phaser.GameObjects.GameObject & { setVisible: (v: boolean) => void }).setVisible(paused));
+    this.audioHandles.forEach(h => paused ? h.setInteractive({ useHandCursor: true }) : h.disableInteractive());
+  }
+
+  showCountdown(value: string): void {
+    this.countdownText.setText(value);
+  }
+
+  hideCountdown(): void {
+    this.countdownText.setText('');
+  }
+
+  // ── Private helpers ───────────────────────────────────────────────────────
 
   private makeSlider(
     scene: Phaser.Scene,
@@ -179,41 +295,6 @@ export class GameHUD {
   private clearConfirm(): void {
     this.confirmGroup.forEach(o => (o as Phaser.GameObjects.Text).destroy());
     this.confirmGroup = [];
-  }
-
-  updateScore(score: number): void {
-    this.scoreText.setText(`SCORE: ${score}`);
-  }
-
-  updatePowerUp(djRemaining: number, invRemaining: number): void {
-    const parts: string[] = [];
-    if (djRemaining > 0) parts.push(`2x JUMP ${Math.ceil(djRemaining / 1000)}s`);
-    if (invRemaining > 0) parts.push(`★ INVINCIBLE ${Math.ceil(invRemaining / 1000)}s`);
-    this.powerUpText.setText(parts.join('  '));
-  }
-
-  updateLives(lives: number): void {
-    this.livesText.setText(this.buildLivesString(lives));
-  }
-
-  setPaused(paused: boolean): void {
-    this.pauseBg.setVisible(paused);
-    this.pauseOverlay.setVisible(paused);
-    this.pauseMenuItems.forEach(b => b.setVisible(paused));
-    this.pauseButton.setText(paused ? '▶' : '⏸');
-    if (!paused) this.clearConfirm();
-
-    // Audio sliders
-    this.audioGroup.forEach(o => (o as Phaser.GameObjects.GameObject & { setVisible: (v: boolean) => void }).setVisible(paused));
-    this.audioHandles.forEach(h => paused ? h.setInteractive({ useHandCursor: true }) : h.disableInteractive());
-  }
-
-  showCountdown(value: string): void {
-    this.countdownText.setText(value);
-  }
-
-  hideCountdown(): void {
-    this.countdownText.setText('');
   }
 
   private buildLivesString(lives: number): string {
